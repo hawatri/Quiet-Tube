@@ -10,7 +10,7 @@ let wakeLock: WakeLockSentinel | null = null;
 const requestWakeLock = async () => {
   if ("wakeLock" in navigator) {
     try {
-      wakeLock = await navigator.wakeLock.request("system");
+      wakeLock = await navigator.wakeLock.request("screen");
       wakeLock.addEventListener("release", () => {
         // The wake lock was released, for example, because the user switched tabs.
         // We'll try to re-acquire it later when the page becomes visible again.
