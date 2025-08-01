@@ -70,6 +70,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [queue, setQueue] = useState<Song[]>([]);
+  const justFinishedTrack = useRef(false);
   const shuffleOrder = useRef<number[]>([]);
   const playerRef = useRef<any>(null);
   const { toast } = useToast();
@@ -103,9 +104,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const activePlaylist = playlists.find(p => p.id === activePlaylistId) ?? null;
   const playingPlaylist = playlists.find(p => p.id === playingPlaylistId) ?? null;
 
-  const currentTrack = queue.length > 0 
-    ? queue[0] 
+  const currentTrack = (justFinishedTrack.current && queue.length > 0)
+    ? queue[0]
     : ((playingPlaylist && currentTrackIndex !== null) ? playingPlaylist.songs[currentTrackIndex] : null);
+  
+  useEffect(() => {
+      if (justFinishedTrack.current) {
+          justFinishedTrack.current = false;
+      }
+  }, [currentTrackIndex, queue]);
+
 
   const generateShuffleOrder = useCallback((songCount: number) => {
     const order = Array.from({ length: songCount }, (_, i) => i);
@@ -197,6 +205,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   };
 
   const playNext = useCallback(() => {
+    justFinishedTrack.current = true;
     // Play from queue first
     if (queue.length > 0) {
       setQueue(prev => prev.slice(1));
@@ -384,8 +393,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const queueNext = (song: Song) => {
     setQueue(prev => [...prev, song]);
     toast({ title: "Song added to queue", description: `"${song.title}" will play next.` });
-    if (!currentTrack) {
-        setIsPlaying(true);
+    if (!isPlaying && !currentTrack) {
+      setIsPlaying(true);
+      justFinishedTrack.current = true;
     }
   };
 
@@ -427,5 +437,3 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;
 }
-
-    
