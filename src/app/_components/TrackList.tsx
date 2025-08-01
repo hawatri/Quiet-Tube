@@ -21,6 +21,7 @@ import { ThemeToggle } from "./ThemeToggle";
 export default function TrackList() {
   const {
     activePlaylist,
+    playingPlaylistId,
     playTrack,
     currentTrack,
     isPlaying,
@@ -97,7 +98,7 @@ export default function TrackList() {
             </TableHeader>
             <TableBody>
               {activePlaylist.songs.map((song, index) => {
-                const isActive = currentTrack?.id === song.id;
+                const isActive = currentTrack?.id === song.id && playingPlaylistId === activePlaylist.id;
                 return (
                   <TableRow
                     key={song.id}
@@ -167,3 +168,5 @@ export default function TrackList() {
     </>
   );
 }
+
+    
