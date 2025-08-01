@@ -43,7 +43,7 @@ export interface PlayerContextType {
   toggleLoop: () => void;
   toggleShuffle: () => void;
   setCurrentTrackIndex: (index: number | null) => void;
-  exportPlaylists: () => void;
+  exportPlaylists: (playlistId?: string) => void;
   importPlaylists: (files: File[]) => void;
 }
 
@@ -138,7 +138,18 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const removeSongFromPlaylist = (playlistId: string, songId: string) => {
     setPlaylists(prev => prev.map(p => {
       if (p.id !== playlistId) return p;
-      return { ...p, songs: p.songs.filter(s => s.id !== songId) };
+      
+      const songToRemove = p.songs.find(s => s.id === songId);
+      const isCurrentTrack = songToRemove && currentTrack && songToRemove.id === currentTrack.id;
+
+      const newSongs = p.songs.filter(s => s.id !== songId);
+
+      if(isCurrentTrack) {
+        setIsPlaying(false);
+        setCurrentTrackIndex(null);
+      }
+      
+      return { ...p, songs: newSongs };
     }));
   };
 
@@ -209,22 +220,35 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const exportPlaylists = () => {
-    if (playlists.length === 0) {
-      toast({ variant: "destructive", title: "No playlists to export." });
-      return;
+  const exportPlaylists = (playlistId?: string) => {
+    let dataToExport: Playlist[] | Playlist | null = null;
+    let filename = "quiet-tube-playlists.music";
+
+    if (playlistId) {
+        dataToExport = playlists.find(p => p.id === playlistId) ?? null;
+        if (dataToExport) {
+            filename = `${dataToExport.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.music`;
+        }
+    } else {
+        dataToExport = playlists;
     }
-    const dataStr = JSON.stringify(playlists, null, 2);
+
+    if (!dataToExport || (Array.isArray(dataToExport) && dataToExport.length === 0)) {
+        toast({ variant: "destructive", title: "Nothing to export." });
+        return;
+    }
+
+    const dataStr = JSON.stringify(dataToExport, null, 2);
     const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement("a");
-    link.download = "quiet-tube-playlists.music";
+    link.download = filename;
     link.href = url;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    toast({ title: "Playlists downloaded successfully!" });
+    toast({ title: "Playlist(s) downloaded successfully!" });
   };
 
   const importPlaylists = (files: File[]) => {
@@ -239,8 +263,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
             if (typeof text !== 'string') throw new Error("File could not be read");
             const json = JSON.parse(text);
             
-            // Allow importing single playlist object or array of playlists
-            const validation = PlaylistsSchema.safeParse(Array.isArray(json) ? json : [json]);
+            const toValidate = Array.isArray(json) ? json : [json];
+            const validation = PlaylistsSchema.safeParse(toValidate.map(p => ({
+                ...p,
+                id: p.id || crypto.randomUUID(),
+                songs: p.songs ? p.songs.map((s: any) => ({...s, id: s.id || crypto.randomUUID()})) : []
+            })));
 
             if (validation.success) {
                 importedPlaylists = [...importedPlaylists, ...validation.data];
@@ -262,7 +290,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
     Promise.all(readerPromises).then(() => {
         if (importedPlaylists.length > 0) {
-            setPlaylists(prev => [...prev, ...importedPlaylists]);
+            setPlaylists(prev => {
+                const existingIds = new Set(prev.map(p => p.id));
+                const newPlaylists = importedPlaylists.filter(p => !existingIds.has(p.id));
+                return [...prev, ...newPlaylists];
+            });
+
             if (!activePlaylistId && importedPlaylists.length > 0) {
                 selectPlaylist(importedPlaylists[0].id);
             }
@@ -277,7 +310,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
             });
         }
         
-        if (importedPlaylists.length === 0 && failedFiles.length > 0 && files.length === failedFiles.length) {
+        if (importedPlaylists.length === 0 && files.length > 0) {
              toast({
               variant: "destructive",
               title: "Import failed",

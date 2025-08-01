@@ -23,6 +23,14 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import EditPlaylistDialog from "./EditPlaylistDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { MoreVertical } from 'lucide-react';
+
 
 export default function PlaylistSidebar() {
   const {
@@ -52,6 +60,14 @@ export default function PlaylistSidebar() {
   const handleImportClick = () => {
     fileInputRef.current?.click();
   };
+  
+  const handleDownloadAll = () => {
+    exportPlaylists();
+  }
+  
+  const handleDownloadSingle = (playlistId: string) => {
+    exportPlaylists(playlistId);
+  }
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -71,17 +87,44 @@ export default function PlaylistSidebar() {
 
   return (
     <>
-      <aside className="w-64 flex flex-col bg-card border-r border-border h-full">
-        <div className="p-4 border-b border-border flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-primary-foreground font-headline">
-            QuietTube
-          </h1>
-           <Button
-            size="sm"
-            onClick={() => setCreateDialogOpen(true)}
-          >
-            <Plus className="mr-2 h-4 w-4" /> New
-          </Button>
+      <aside className="w-72 flex flex-col bg-card border-r border-border h-full">
+        <div className="p-4 border-b border-border">
+            <h1 className="text-2xl font-bold text-primary-foreground font-headline mb-4">
+                QuietTube
+            </h1>
+            <div className="flex flex-col space-y-2">
+                 <Button
+                    size="sm"
+                    onClick={() => setCreateDialogOpen(true)}
+                    className="w-full"
+                >
+                    <Plus className="mr-2 h-4 w-4" /> New Playlist
+                </Button>
+                <div className="flex space-x-2">
+                     <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={handleDownloadAll}
+                    >
+                      <Download className="mr-2 h-4 w-4" /> All
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={handleImportClick}
+                    >
+                      <FolderOpen className="mr-2 h-4 w-4" /> Import
+                    </Button>
+                </div>
+            </div>
+             <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept=".music"
+              onChange={handleFileChange}
+              multiple
+            />
         </div>
 
         <ScrollArea className="flex-1">
@@ -91,69 +134,50 @@ export default function PlaylistSidebar() {
             </h2>
             <div className="space-y-1 p-2">
               {playlists.map((playlist) => (
-                <div key={playlist.id} className="group relative">
+                <div key={playlist.id} className="group relative rounded-md hover:bg-accent">
                   <Button
                     variant="ghost"
                     onClick={() => selectPlaylist(playlist.id)}
                     className={cn(
-                      "w-full justify-start",
+                      "w-full justify-start text-left",
                       activePlaylistId === playlist.id &&
                         "bg-accent text-accent-foreground"
                     )}
                   >
-                    <Music className="mr-2 h-4 w-4" />
-                    <span className="truncate">{playlist.name}</span>
+                    <Music className="mr-2 h-4 w-4 flex-shrink-0" />
+                    <span className="truncate flex-grow">{playlist.name}</span>
                   </Button>
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => openEditDialog(playlist.id)}
-                    >
-                      <FileEdit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => deletePlaylist(playlist.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                                <MoreVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent side="right">
+                             <DropdownMenuItem onClick={() => openEditDialog(playlist.id)}>
+                                <FileEdit className="mr-2 h-4 w-4" />
+                                <span>Rename</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadSingle(playlist.id)}>
+                                <Download className="mr-2 h-4 w-4" />
+                                <span>Download</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                                className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                onClick={() => deletePlaylist(playlist.id)}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                <span>Delete</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         </ScrollArea>
-
-        <div className="p-2 border-t border-border">
-          <div className="flex space-x-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={exportPlaylists}
-            >
-              <Download className="mr-2 h-4 w-4" /> Download
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={handleImportClick}
-            >
-              <FolderOpen className="mr-2 h-4 w-4" /> Import
-            </Button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept=".music"
-              onChange={handleFileChange}
-              multiple
-            />
-          </div>
-        </div>
       </aside>
       
       <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
