@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Music, Play, Pause, Trash2, Plus } from "lucide-react";
+import { Music, Play, Pause, Trash2, Plus, ListPlus } from "lucide-react";
 import AddSongDialog from "./AddSongDialog";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +24,7 @@ export default function TrackList() {
     isPlaying,
     togglePlay,
     removeSongFromPlaylist,
+    queueNext,
   } = usePlayer();
   const [isAddSongOpen, setAddSongOpen] = useState(false);
 
@@ -109,9 +110,22 @@ export default function TrackList() {
                         size="icon"
                         onClick={(e) => {
                             e.stopPropagation();
+                            queueNext(song);
+                        }}
+                        className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                        title="Play next"
+                      >
+                        <ListPlus className="h-4 w-4" />
+                      </Button>
+                       <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                            e.stopPropagation();
                             removeSongFromPlaylist(activePlaylist.id, song.id)
                         }}
                         className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        title="Delete song"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

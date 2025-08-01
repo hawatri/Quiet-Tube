@@ -12,6 +12,7 @@ import {
   Music,
   Trash2,
   FileEdit,
+  Play,
 } from "lucide-react";
 import {
   Dialog,
@@ -41,6 +42,7 @@ export default function PlaylistSidebar() {
     exportPlaylists,
     importPlaylists,
     deletePlaylist,
+    playTrack,
   } = usePlayer();
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
@@ -84,6 +86,12 @@ export default function PlaylistSidebar() {
     setPlaylistToEdit(playlistId);
     setEditDialogOpen(true);
   };
+  
+  const handlePlayPlaylist = (playlistId: string, songs: any[]) => {
+      if (songs.length > 0) {
+          playTrack(playlistId, 0);
+      }
+  }
 
   return (
     <>
@@ -155,6 +163,10 @@ export default function PlaylistSidebar() {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent side="right">
+                             <DropdownMenuItem onClick={() => handlePlayPlaylist(playlist.id, playlist.songs)} disabled={playlist.songs.length === 0}>
+                                <Play className="mr-2 h-4 w-4" />
+                                <span>Play</span>
+                            </DropdownMenuItem>
                              <DropdownMenuItem onClick={() => openEditDialog(playlist.id)}>
                                 <FileEdit className="mr-2 h-4 w-4" />
                                 <span>Rename</span>

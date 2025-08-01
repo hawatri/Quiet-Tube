@@ -51,6 +51,7 @@ export interface PlayerContextType {
   setDuration: (duration: number) => void;
   seek: (seconds: number) => void;
   playerRef: React.RefObject<any>;
+  queueNext: (song: Song) => void;
 }
 
 export const PlayerContext = createContext<PlayerContextType | null>(null);
@@ -67,6 +68,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [isShuffled, setIsShuffled] = useState<boolean>(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [queue, setQueue] = useState<Song[]>([]);
   const shuffleOrder = useRef<number[]>([]);
   const playerRef = useRef<any>(null);
   const { toast } = useToast();
@@ -98,7 +100,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, [playlists]);
   
   const activePlaylist = playlists.find(p => p.id === activePlaylistId) ?? null;
-  const currentTrack = (activePlaylist && currentTrackIndex !== null) ? activePlaylist.songs[currentTrackIndex] : null;
+  const currentTrack = queue.length > 0 ? queue[0] : ((activePlaylist && currentTrackIndex !== null) ? activePlaylist.songs[currentTrackIndex] : null);
 
   const generateShuffleOrder = useCallback((songCount: number) => {
     const order = Array.from({ length: songCount }, (_, i) => i);
@@ -163,6 +165,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   };
 
   const playTrack = (playlistId: string, trackIndex: number) => {
+    setQueue([]);
     if (activePlaylistId !== playlistId) {
       setActivePlaylistId(playlistId);
     }
@@ -179,6 +182,28 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   };
 
   const playNext = useCallback(() => {
+    // Play from queue first
+    if (queue.length > 0) {
+      setQueue(prev => prev.slice(1));
+      // If queue is now empty, we continue with the original playlist
+      // otherwise, we play the next in queue.
+      if (queue.length > 1) {
+         // still items in queue
+         setProgress(0);
+         setDuration(0);
+         setIsPlaying(true);
+         return;
+      }
+      // queue finished, continue playlist if a track was playing
+      if (currentTrackIndex !== null) {
+        setIsPlaying(true);
+      } else {
+        setIsPlaying(false);
+      }
+      return;
+    }
+
+
     if (!activePlaylist || currentTrackIndex === null || activePlaylist.songs.length === 0) return;
   
     // If not looping and it's the last song, stop playback.
@@ -203,9 +228,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setProgress(0);
     setDuration(0);
     setIsPlaying(true);
-  }, [activePlaylist, currentTrackIndex, isShuffled, loop]);
+  }, [activePlaylist, currentTrackIndex, isShuffled, loop, queue]);
 
   const playPrevious = () => {
+    if (queue.length > 0) {
+      // Cannot go previous in a queue
+      return;
+    }
+
     if (!activePlaylist || currentTrackIndex === null) return;
   
     if (isShuffled) {
@@ -342,6 +372,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const queueNext = (song: Song) => {
+    setQueue(prev => [...prev, song]);
+    toast({ title: "Song added to queue", description: `"${song.title}" will play next.` });
+    // If nothing is playing, start playing the queued song.
+    if (!currentTrack) {
+        setIsPlaying(true);
+    }
+  };
+
+
   const value: PlayerContextType = {
     playlists,
     activePlaylistId,
@@ -373,7 +413,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setProgress,
     setDuration,
     seek,
-    playerRef
+    playerRef,
+    queueNext
   };
 
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;
