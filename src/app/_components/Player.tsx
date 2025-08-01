@@ -13,9 +13,10 @@ export default function Player() {
     playNext,
     playPrevious,
     togglePlay,
-    setCurrentTrackIndex,
+    setProgress,
+    setDuration,
+    playerRef,
   } = usePlayer();
-  const playerRef = useRef<ReactPlayer>(null);
 
   useEffect(() => {
     if ("mediaSession" in navigator) {
@@ -53,6 +54,14 @@ export default function Player() {
     playNext();
   }
 
+  const handleProgress = (state: { played: number, playedSeconds: number }) => {
+    setProgress(state.playedSeconds);
+  };
+
+  const handleDuration = (duration: number) => {
+    setDuration(duration);
+  };
+
   return (
     <div style={{ display: 'none' }}>
       <ReactPlayer
@@ -64,6 +73,8 @@ export default function Player() {
         onEnded={handleEnded}
         onPlay={() => { if(!isPlaying) togglePlay() }}
         onPause={() => { if(isPlaying) togglePlay() }}
+        onProgress={handleProgress}
+        onDuration={handleDuration}
         onError={handleError}
         width="0"
         height="0"

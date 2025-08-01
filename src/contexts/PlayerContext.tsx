@@ -27,6 +27,8 @@ export interface PlayerContextType {
   volume: number;
   loop: boolean;
   isShuffled: boolean;
+  progress: number;
+  duration: number;
   currentTrack: Song | null;
   activePlaylist: Playlist | null;
   createPlaylist: (name: string) => void;
@@ -45,6 +47,10 @@ export interface PlayerContextType {
   setCurrentTrackIndex: (index: number | null) => void;
   exportPlaylists: (playlistId?: string) => void;
   importPlaylists: (files: File[]) => void;
+  setProgress: (progress: number) => void;
+  setDuration: (duration: number) => void;
+  seek: (amount: number) => void;
+  playerRef: React.RefObject<any>;
 }
 
 export const PlayerContext = createContext<PlayerContextType | null>(null);
@@ -59,7 +65,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [volume, setVolume] = useState<number>(0.8);
   const [loop, setLoop] = useState<boolean>(false);
   const [isShuffled, setIsShuffled] = useState<boolean>(false);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
   const shuffleOrder = useRef<number[]>([]);
+  const playerRef = useRef<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -158,6 +167,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setActivePlaylistId(playlistId);
     }
     setCurrentTrackIndex(trackIndex);
+    setProgress(0);
+    setDuration(0);
     setIsPlaying(true);
   };
 
@@ -189,6 +200,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       const nextIndex = (currentTrackIndex + 1) % activePlaylist.songs.length;
       setCurrentTrackIndex(nextIndex);
     }
+    setProgress(0);
+    setDuration(0);
     setIsPlaying(true);
   }, [activePlaylist, currentTrackIndex, isShuffled, loop]);
 
@@ -203,6 +216,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       const prevIndex = (currentTrackIndex - 1 + activePlaylist.songs.length) % activePlaylist.songs.length;
       setCurrentTrackIndex(prevIndex);
     }
+    setProgress(0);
+    setDuration(0);
     setIsPlaying(true);
   };
 
@@ -219,6 +234,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       return newShuffleState;
     });
   };
+
+  const seek = (amount: number) => {
+    if (playerRef.current) {
+        playerRef.current.seekTo(amount, 'fraction');
+    }
+  }
 
   const exportPlaylists = (playlistId?: string) => {
     let dataToExport: Playlist[] | Playlist | null = null;
@@ -328,6 +349,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     volume,
     loop,
     isShuffled,
+    progress,
+    duration,
     currentTrack,
     activePlaylist,
     createPlaylist,
@@ -346,6 +369,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setCurrentTrackIndex,
     exportPlaylists,
     importPlaylists,
+    setProgress,
+    setDuration,
+    seek,
+    playerRef
   };
 
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;
