@@ -30,7 +30,7 @@ export default function TrackList() {
 
   if (!activePlaylist) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-muted/50">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-card/80 backdrop-blur-lg rounded-lg m-4">
         <h2 className="text-2xl font-semibold">Welcome to QuietTube</h2>
         <p className="text-muted-foreground mt-2">
           Select a playlist or create a new one to get started.
@@ -84,7 +84,7 @@ export default function TrackList() {
                   <TableRow
                     key={song.id}
                     onClick={() => playTrack(activePlaylist.id, index)}
-                    className={cn("cursor-pointer", isActive && "bg-accent/50 hover:bg-accent/60")}
+                    className={cn("cursor-pointer", isActive && "bg-accent/80 hover:bg-accent/90")}
                   >
                     <TableCell>
                       <Button

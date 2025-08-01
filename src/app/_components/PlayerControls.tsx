@@ -48,19 +48,18 @@ export default function PlayerControls() {
 
   const handleSeek = (value: number[]) => {
     if (duration > 0) {
-        // seek expects a value between 0 and 1
         seek(value[0]);
     }
   };
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 h-24 bg-card/80 backdrop-blur-sm border-t border-border z-50">
+    <footer className="fixed bottom-0 left-0 right-0 h-24 bg-card/80 backdrop-blur-lg border-t border-border z-50">
       <div className="h-full container mx-auto px-4 flex items-center justify-between">
         
         <div className="w-1/4 flex items-center gap-3">
         {currentTrack ? (
             <>
-            <div className="h-14 w-14 bg-muted rounded-md flex items-center justify-center">
+            <div className="h-14 w-14 bg-muted/80 rounded-md flex items-center justify-center">
                 <Music className="h-8 w-8 text-muted-foreground" />
             </div>
             <div>
@@ -70,7 +69,7 @@ export default function PlayerControls() {
             </>
         ) : (
             <div className="flex items-center gap-3">
-                <div className="h-14 w-14 bg-muted rounded-md flex items-center justify-center">
+                <div className="h-14 w-14 bg-muted/80 rounded-md flex items-center justify-center">
                 <Music className="h-8 w-8 text-muted-foreground" />
             </div>
             <div>

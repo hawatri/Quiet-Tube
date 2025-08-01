@@ -96,7 +96,7 @@ export default function PlaylistSidebar() {
 
   return (
     <>
-      <aside className="w-72 flex flex-col bg-card border-r border-border h-full">
+      <aside className="w-72 flex flex-col bg-card/80 backdrop-blur-lg border-r border-border h-full">
         <div className="p-4 border-b border-border">
             <div className="flex justify-between items-center mb-4">
                  <h1 className="text-2xl font-bold text-primary-foreground font-headline">
@@ -147,7 +147,7 @@ export default function PlaylistSidebar() {
             </h2>
             <div className="space-y-1 p-2">
               {playlists.map((playlist) => (
-                <div key={playlist.id} className="group relative rounded-md hover:bg-accent">
+                <div key={playlist.id} className="group relative rounded-md hover:bg-accent/80">
                   <Button
                     variant="ghost"
                     onClick={() => selectPlaylist(playlist.id)}
