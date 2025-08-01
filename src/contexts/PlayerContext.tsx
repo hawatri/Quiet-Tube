@@ -49,7 +49,7 @@ export interface PlayerContextType {
   importPlaylists: (files: File[]) => void;
   setProgress: (progress: number) => void;
   setDuration: (duration: number) => void;
-  seek: (amount: number) => void;
+  seek: (seconds: number) => void;
   playerRef: React.RefObject<any>;
 }
 
@@ -235,9 +235,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const seek = (amount: number) => {
+  const seek = (seconds: number) => {
     if (playerRef.current) {
-        playerRef.current.seekTo(amount, 'fraction');
+        playerRef.current.seekTo(seconds, 'seconds');
+        setProgress(seconds);
     }
   }
 
