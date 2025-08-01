@@ -102,7 +102,9 @@ export default function PlaylistSidebar() {
                  <h1 className="text-2xl font-bold text-primary-foreground font-headline">
                     QuietTube
                 </h1>
-                <ThemeToggle />
+                <div className="hidden md:block">
+                  <ThemeToggle />
+                </div>
             </div>
            
             <div className="flex flex-col space-y-2">
