@@ -30,7 +30,7 @@ export default function TrackList() {
 
   if (!activePlaylist) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-card/80 backdrop-blur-lg rounded-lg m-4">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-card/60 backdrop-blur-xl rounded-lg m-4">
         <h2 className="text-2xl font-semibold">Welcome to QuietTube</h2>
         <p className="text-muted-foreground mt-2">
           Select a playlist or create a new one to get started.
@@ -50,6 +50,7 @@ export default function TrackList() {
 
   return (
     <>
+    <div className="flex-1 flex flex-col m-4 mt-0 mr-0 p-0 rounded-lg bg-card/60 backdrop-blur-xl overflow-hidden">
       <div className="p-4 sm:p-6 lg:p-8 border-b border-border flex items-center justify-between">
         <div>
             <h2 className="text-3xl font-bold tracking-tight font-headline">{activePlaylist.name}</h2>
@@ -137,6 +138,7 @@ export default function TrackList() {
           </Table>
         )}
       </ScrollArea>
+      </div>
       {isAddSongOpen && (
         <AddSongDialog isOpen={isAddSongOpen} setIsOpen={setAddSongOpen} />
       )}

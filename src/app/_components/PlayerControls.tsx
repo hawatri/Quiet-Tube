@@ -53,7 +53,7 @@ export default function PlayerControls() {
   };
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 h-24 bg-card/80 backdrop-blur-lg border-t border-border z-50">
+    <footer className="fixed bottom-0 left-0 right-0 h-24 bg-card/60 backdrop-blur-xl border-t border-border z-50">
       <div className="h-full container mx-auto px-4 flex items-center justify-between">
         
         <div className="w-1/4 flex items-center gap-3">
