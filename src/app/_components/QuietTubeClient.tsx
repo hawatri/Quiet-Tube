@@ -25,11 +25,7 @@ export default function QuietTubeClient() {
                     <h1 className="text-2xl font-bold text-primary-foreground font-headline">
                         QuietTube
                     </h1>
-                    <SidebarTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <PanelLeft />
-                      </Button>
-                    </SidebarTrigger>
+                    <SidebarTrigger />
                 </header>
                 <main className="flex-1 flex flex-col overflow-hidden">
                     <TrackList />
