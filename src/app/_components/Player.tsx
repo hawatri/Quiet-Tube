@@ -4,6 +4,36 @@ import { useEffect, useRef } from "react";
 import ReactPlayer from "react-player/youtube";
 import { usePlayer } from "@/hooks/usePlayer";
 
+// Wake Lock API
+let wakeLock: WakeLockSentinel | null = null;
+
+const requestWakeLock = async () => {
+  if ("wakeLock" in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request("system");
+      wakeLock.addEventListener("release", () => {
+        // The wake lock was released, for example, because the user switched tabs.
+        // We'll try to re-acquire it later when the page becomes visible again.
+        wakeLock = null;
+      });
+    } catch (err: any) {
+      console.error(`${err.name}, ${err.message}`);
+    }
+  }
+};
+
+const releaseWakeLock = async () => {
+  if (wakeLock !== null) {
+    try {
+      await wakeLock.release();
+      wakeLock = null;
+    } catch (err: any)      {
+       console.error(`${err.name}, ${err.message}`);
+    }
+  }
+};
+
+
 export default function Player() {
   const {
     isPlaying,
@@ -44,10 +74,32 @@ export default function Player() {
   }, [currentTrack, playNext, playPrevious, togglePlay]);
 
   // This effect explicitly tells the OS the playback state (playing/paused)
+  // It also handles the Wake Lock to prevent Android from sleeping.
   useEffect(() => {
-      if ("mediaSession" in navigator) {
-          navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-      }
+    if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+    }
+
+    if (isPlaying) {
+      requestWakeLock();
+    } else {
+      releaseWakeLock();
+    }
+
+    // Try to re-acquire the wake lock if the page becomes visible again
+    const handleVisibilityChange = () => {
+        if (wakeLock === null && isPlaying && document.visibilityState === 'visible') {
+            requestWakeLock();
+        }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Clean up wake lock on component unmount
+    return () => {
+        releaseWakeLock();
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }
   }, [isPlaying]);
 
 
