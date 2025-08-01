@@ -18,13 +18,14 @@ export default function Player() {
     playerRef,
   } = usePlayer();
 
+  // This effect handles the Media Session API for background playback controls
   useEffect(() => {
     if ("mediaSession" in navigator) {
       if (currentTrack) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: currentTrack.title,
           artist: "QuietTube",
-          album: currentTrack.url,
+          album: "QuietTube Playlist",
         });
 
         navigator.mediaSession.setActionHandler("play", () => togglePlay());
@@ -41,6 +42,14 @@ export default function Player() {
       }
     }
   }, [currentTrack, playNext, playPrevious, togglePlay]);
+
+  // This effect explicitly tells the OS the playback state (playing/paused)
+  useEffect(() => {
+      if ("mediaSession" in navigator) {
+          navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+      }
+  }, [isPlaying]);
+
 
   const handleEnded = () => {
     if (!loop) {
@@ -61,6 +70,18 @@ export default function Player() {
   const handleDuration = (duration: number) => {
     setDuration(duration);
   };
+  
+  const handleOnPlay = () => {
+    if (!isPlaying) {
+        togglePlay();
+    }
+  }
+
+  const handleOnPause = () => {
+      if (isPlaying) {
+          togglePlay();
+      }
+  }
 
   return (
     <div style={{ display: 'none' }}>
@@ -71,8 +92,8 @@ export default function Player() {
         volume={volume}
         loop={loop}
         onEnded={handleEnded}
-        onPlay={() => { if(!isPlaying) togglePlay() }}
-        onPause={() => { if(isPlaying) togglePlay() }}
+        onPlay={handleOnPlay}
+        onPause={handleOnPause}
         onProgress={handleProgress}
         onDuration={handleDuration}
         onError={handleError}
@@ -83,6 +104,7 @@ export default function Player() {
             playerVars: { 
               autoplay: 1,
               controls: 0,
+              playsinline: 1,
             }
           }
         }}
