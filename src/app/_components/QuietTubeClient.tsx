@@ -18,7 +18,7 @@ export default function QuietTubeClient() {
             <Sidebar>
                 <PlaylistSidebar />
             </Sidebar>
-            <SidebarInset className="flex flex-col">
+            <SidebarInset>
                 <main className="flex-1 flex flex-col overflow-hidden">
                     <TrackList />
                 </main>

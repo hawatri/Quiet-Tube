@@ -15,8 +15,6 @@ import {
   Music,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ThemeToggle } from "./ThemeToggle";
 
 const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return "0:00";
@@ -56,15 +54,6 @@ export default function PlayerControls() {
 
   return (
     <>
-      <header className="p-4 border-b border-border flex items-center justify-between md:hidden sticky top-0 bg-card/80 backdrop-blur-sm z-40">
-          <h1 className="text-2xl font-bold text-primary-foreground font-headline">
-              QuietTube
-          </h1>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <SidebarTrigger />
-          </div>
-      </header>
       <footer className="fixed bottom-0 left-0 right-0 h-24 bg-card/60 backdrop-blur-xl border-t border-border z-50">
         <div className="h-full container mx-auto px-4 flex items-center justify-between">
           
