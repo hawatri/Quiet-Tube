@@ -4,7 +4,9 @@ import { PlayerProvider } from "@/contexts/PlayerContext";
 import PlaylistSidebar from "./PlaylistSidebar";
 import TrackList from "./TrackList";
 import PlayerControls from "./PlayerControls";
-import Player from "./Player";
+import dynamic from 'next/dynamic';
+
+const Player = dynamic(() => import('./Player'), { ssr: false });
 
 export default function QuietTubeClient() {
   return (
