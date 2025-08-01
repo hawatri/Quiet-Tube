@@ -44,7 +44,7 @@ export interface PlayerContextType {
   toggleShuffle: () => void;
   setCurrentTrackIndex: (index: number | null) => void;
   exportPlaylists: () => void;
-  importPlaylists: (file: File) => void;
+  importPlaylists: (files: File[]) => void;
 }
 
 export const PlayerContext = createContext<PlayerContextType | null>(null);
@@ -157,10 +157,21 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   };
 
   const playNext = useCallback(() => {
-    if (!activePlaylist || currentTrackIndex === null) return;
+    if (!activePlaylist || currentTrackIndex === null || activePlaylist.songs.length === 0) return;
   
+    // If not looping and it's the last song, stop playback.
+    if (!loop && !isShuffled && currentTrackIndex === activePlaylist.songs.length - 1) {
+        setIsPlaying(false);
+        return;
+    }
+    
     if (isShuffled) {
       const currentShuffleIndex = shuffleOrder.current.indexOf(currentTrackIndex);
+      // If not looping and it's the last shuffled song, stop playback.
+      if (!loop && currentShuffleIndex === shuffleOrder.current.length - 1) {
+          setIsPlaying(false);
+          return;
+      }
       const nextShuffleIndex = (currentShuffleIndex + 1) % shuffleOrder.current.length;
       setCurrentTrackIndex(shuffleOrder.current[nextShuffleIndex]);
     } else {
@@ -168,7 +179,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setCurrentTrackIndex(nextIndex);
     }
     setIsPlaying(true);
-  }, [activePlaylist, currentTrackIndex, isShuffled]);
+  }, [activePlaylist, currentTrackIndex, isShuffled, loop]);
 
   const playPrevious = () => {
     if (!activePlaylist || currentTrackIndex === null) return;
@@ -199,44 +210,81 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   };
 
   const exportPlaylists = () => {
+    if (playlists.length === 0) {
+      toast({ variant: "destructive", title: "No playlists to export." });
+      return;
+    }
     const dataStr = JSON.stringify(playlists, null, 2);
     const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement("a");
-    link.download = "quiet-tube-playlists.json";
+    link.download = "quiet-tube-playlists.music";
     link.href = url;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    toast({ title: "Playlists exported successfully!" });
+    toast({ title: "Playlists downloaded successfully!" });
   };
 
-  const importPlaylists = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const text = e.target?.result;
-        if (typeof text !== 'string') throw new Error("File could not be read");
-        const json = JSON.parse(text);
-        const validation = PlaylistsSchema.safeParse(json);
-        if (validation.success) {
-          setPlaylists(validation.data);
-          selectPlaylist(validation.data.length > 0 ? validation.data[0].id : null);
-          toast({ title: "Playlists imported successfully!" });
-        } else {
-          throw new Error(validation.error.message);
+  const importPlaylists = (files: File[]) => {
+    let importedPlaylists: Playlist[] = [];
+    let failedFiles: string[] = [];
+    
+    const readerPromises = files.map(file => new Promise<void>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const text = e.target?.result;
+            if (typeof text !== 'string') throw new Error("File could not be read");
+            const json = JSON.parse(text);
+            
+            // Allow importing single playlist object or array of playlists
+            const validation = PlaylistsSchema.safeParse(Array.isArray(json) ? json : [json]);
+
+            if (validation.success) {
+                importedPlaylists = [...importedPlaylists, ...validation.data];
+            } else {
+               failedFiles.push(file.name);
+            }
+          } catch (error) {
+            failedFiles.push(file.name);
+          } finally {
+            resolve();
+          }
+        };
+        reader.onerror = () => {
+            failedFiles.push(file.name);
+            resolve();
         }
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Import failed",
-          description: "The selected file is not a valid playlist file.",
-        });
-        console.error("Import error:", error);
-      }
-    };
-    reader.readAsText(file);
+        reader.readAsText(file);
+    }));
+
+    Promise.all(readerPromises).then(() => {
+        if (importedPlaylists.length > 0) {
+            setPlaylists(prev => [...prev, ...importedPlaylists]);
+            if (!activePlaylistId && importedPlaylists.length > 0) {
+                selectPlaylist(importedPlaylists[0].id);
+            }
+            toast({ title: "Playlists imported successfully!", description: `${importedPlaylists.length} playlists added.` });
+        }
+
+        if (failedFiles.length > 0) {
+            toast({
+              variant: "destructive",
+              title: "Some files failed to import",
+              description: `Could not import: ${failedFiles.join(', ')}`,
+            });
+        }
+        
+        if (importedPlaylists.length === 0 && failedFiles.length > 0 && files.length === failedFiles.length) {
+             toast({
+              variant: "destructive",
+              title: "Import failed",
+              description: "No valid playlist files were selected.",
+            });
+        }
+    });
   };
 
   const value: PlayerContextType = {

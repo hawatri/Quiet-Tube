@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Plus,
-  Save,
+  Download,
   FolderOpen,
   Music,
   Trash2,
@@ -54,9 +54,13 @@ export default function PlaylistSidebar() {
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      importPlaylists(file);
+    const files = event.target.files;
+    if (files) {
+      importPlaylists(Array.from(files));
+    }
+     // Reset file input to allow re-selection of the same file
+    if(event.target) {
+      event.target.value = "";
     }
   };
 
@@ -68,10 +72,16 @@ export default function PlaylistSidebar() {
   return (
     <>
       <aside className="w-64 flex flex-col bg-card border-r border-border h-full">
-        <div className="p-4 border-b border-border">
+        <div className="p-4 border-b border-border flex items-center justify-between">
           <h1 className="text-2xl font-bold text-primary-foreground font-headline">
             QuietTube
           </h1>
+           <Button
+            size="sm"
+            onClick={() => setCreateDialogOpen(true)}
+          >
+            <Plus className="mr-2 h-4 w-4" /> New
+          </Button>
         </div>
 
         <ScrollArea className="flex-1">
@@ -119,20 +129,13 @@ export default function PlaylistSidebar() {
         </ScrollArea>
 
         <div className="p-2 border-t border-border">
-          <Button
-            variant="outline"
-            className="w-full mb-2"
-            onClick={() => setCreateDialogOpen(true)}
-          >
-            <Plus className="mr-2 h-4 w-4" /> New Playlist
-          </Button>
           <div className="flex space-x-2">
             <Button
               variant="outline"
               className="flex-1"
               onClick={exportPlaylists}
             >
-              <Save className="mr-2 h-4 w-4" /> Export
+              <Download className="mr-2 h-4 w-4" /> Download
             </Button>
             <Button
               variant="outline"
@@ -145,8 +148,9 @@ export default function PlaylistSidebar() {
               type="file"
               ref={fileInputRef}
               className="hidden"
-              accept=".json"
+              accept=".music"
               onChange={handleFileChange}
+              multiple
             />
           </div>
         </div>
