@@ -1,0 +1,16 @@
+{
+  "name": "QuietTube",
+  "short_name": "QuietTube",
+  "description": "Listen to YouTube music without distractions.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F0F4F8",
+  "theme_color": "#77B5FE",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
