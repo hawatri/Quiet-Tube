@@ -31,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { MoreVertical } from 'lucide-react';
+import { ThemeToggle } from "./ThemeToggle";
 
 
 export default function PlaylistSidebar() {
@@ -97,9 +98,13 @@ export default function PlaylistSidebar() {
     <>
       <aside className="w-72 flex flex-col bg-card border-r border-border h-full">
         <div className="p-4 border-b border-border">
-            <h1 className="text-2xl font-bold text-primary-foreground font-headline mb-4">
-                QuietTube
-            </h1>
+            <div className="flex justify-between items-center mb-4">
+                 <h1 className="text-2xl font-bold text-primary-foreground font-headline">
+                    QuietTube
+                </h1>
+                <ThemeToggle />
+            </div>
+           
             <div className="flex flex-col space-y-2">
                  <Button
                     size="sm"
