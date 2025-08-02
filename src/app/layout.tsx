@@ -1,3 +1,4 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
@@ -26,6 +27,13 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
+         <svg width="0" height="0">
+            <defs>
+                <clipPath id="wave" clipPathUnits="objectBoundingBox">
+                <path d="M 0,0.5 C 0.05,0, 0.15,1, 0.2,0.5 C 0.25,0, 0.35,1, 0.4,0.5 C 0.45,0, 0.55,1, 0.6,0.5 C 0.65,0, 0.75,1, 0.8,0.5 C 0.85,0, 0.95,1, 1,0.5 V 1 H 0 Z" />
+                </clipPath>
+            </defs>
+        </svg>
         <ThemeProvider
             attribute="class"
             defaultTheme="system"

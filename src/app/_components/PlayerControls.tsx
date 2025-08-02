@@ -4,7 +4,7 @@
 import Image from "next/image";
 import { usePlayer } from "@/hooks/usePlayer";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
+import WavySlider from "./WavySlider";
 import {
   Play,
   Pause,
@@ -17,6 +17,7 @@ import {
   Music,
 } from "lucide-react";
 import { cn, getYouTubeThumbnail } from "@/lib/utils";
+import { Slider } from "@/components/ui/slider";
 
 const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return "0:00";
@@ -122,7 +123,7 @@ export default function PlayerControls() {
               </div>
               <div className="w-full flex items-center gap-2">
                   <span className="text-xs text-muted-foreground w-10 text-right">{formatTime(progress)}</span>
-                  <Slider
+                  <WavySlider
                       value={[progress]}
                       onValueChange={handleSeek}
                       max={duration}
@@ -151,4 +152,3 @@ export default function PlayerControls() {
     </>
   );
 }
-

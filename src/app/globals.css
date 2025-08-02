@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -69,4 +70,10 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@layer components {
+    .wavy-slider-track, .wavy-slider-range {
+        clip-path: url(#wave);
+    }
 }
