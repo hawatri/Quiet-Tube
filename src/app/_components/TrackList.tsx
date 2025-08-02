@@ -33,7 +33,7 @@ export default function TrackList() {
 
   if (!activePlaylist) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-card/60 backdrop-blur-xl rounded-lg m-4">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
         <div className="w-full p-4 border-b border-border flex items-center justify-between md:hidden sticky top-0 bg-card/80 backdrop-blur-sm z-40 -mt-4 -ml-4 -mr-4 mb-4">
             <SidebarTrigger />
             <ThemeToggle />
@@ -57,8 +57,8 @@ export default function TrackList() {
 
   return (
     <>
-    <div className="flex-1 flex flex-col m-4 mt-0 mr-0 p-0 rounded-lg bg-card/60 backdrop-blur-xl overflow-hidden">
-        <div className="p-4 border-b border-border flex items-center justify-between md:hidden sticky top-0 bg-card/80 backdrop-blur-sm z-40 -mt-4 -ml-4 -mr-4 mb-4">
+    <div className="flex-1 flex flex-col p-0 rounded-lg overflow-hidden">
+        <div className="p-4 border-b border-border flex items-center justify-between md:hidden sticky top-0 bg-background/80 backdrop-blur-sm z-40">
              <div className="flex items-center gap-2">
                 <SidebarTrigger />
                 <h2 className="text-xl font-bold tracking-tight font-headline truncate">{activePlaylist.name}</h2>
@@ -168,5 +168,3 @@ export default function TrackList() {
     </>
   );
 }
-
-    

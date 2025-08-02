@@ -21,7 +21,7 @@ export default function QuietTubeClient() {
                 <PlaylistSidebar />
             </Sidebar>
             <SidebarInset>
-                <main className="flex-1 flex flex-col overflow-hidden">
+                <main className="flex-1 flex flex-col overflow-hidden bg-card/60 backdrop-blur-xl md:m-2 md:rounded-xl">
                     <TrackList />
                 </main>
             </SidebarInset>
