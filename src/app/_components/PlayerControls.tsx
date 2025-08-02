@@ -15,9 +15,11 @@ import {
   Repeat,
   Shuffle,
   Music,
+  Volume1,
 } from "lucide-react";
 import { cn, getYouTubeThumbnail } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return "0:00";
@@ -56,6 +58,8 @@ export default function PlayerControls() {
   };
 
   const thumbnail = currentTrack ? getYouTubeThumbnail(currentTrack.url) : null;
+  
+  const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
   return (
     <>
@@ -136,16 +140,42 @@ export default function PlayerControls() {
               </div>
           </div>
 
-          <div className="w-1/4 flex items-center justify-end gap-3">
-          {volume === 0 ? <VolumeX className="h-5 w-5"/> : <Volume2 className="h-5 w-5" />}
-          <Slider
-              value={[volume]}
-              onValueChange={handleVolumeChange}
-              max={1}
-              step={0.01}
-              className="w-[120px] hidden md:flex"
-              aria-label="Volume control"
-          />
+          <div className="w-1/4 flex items-center justify-end gap-2">
+            {/* Desktop Volume Slider */}
+            <div className="hidden md:flex items-center gap-2">
+                <VolumeIcon className="h-5 w-5" />
+                <Slider
+                    value={[volume]}
+                    onValueChange={handleVolumeChange}
+                    max={1}
+                    step={0.01}
+                    className="w-[120px]"
+                    aria-label="Volume control"
+                />
+            </div>
+
+            {/* Mobile Volume Popover */}
+            <div className="md:hidden">
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                             <VolumeIcon className="h-5 w-5" />
+                             <span className="sr-only">Volume control</span>
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-2" align="center" side="top">
+                        <Slider
+                            orientation="vertical"
+                            value={[volume]}
+                            onValueChange={handleVolumeChange}
+                            max={1}
+                            step={0.01}
+                            className="h-32"
+                            aria-label="Volume control"
+                        />
+                    </PopoverContent>
+                </Popover>
+            </div>
           </div>
         </div>
       </footer>
