@@ -16,7 +16,7 @@ interface SearchResult {
 }
 
 export default function SongSearchBar() {
-    const { playlists, playTrack, activePlaylist, addSongToPlaylist } = usePlayer();
+    const { playlists, playTrack, activePlaylist, addSongToPlaylist, playSongFromUrl } = usePlayer();
     const [searchQuery, setSearchQuery] = useState("");
     const [isPopoverOpen, setPopoverOpen] = useState(false);
     const { toast } = useToast();
@@ -64,24 +64,11 @@ export default function SongSearchBar() {
         }
     };
 
-    const handleAddFromUrl = async () => {
-        if (!activePlaylist) {
-            toast({ variant: "destructive", title: "No active playlist", description: "Please select a playlist first."});
-            return;
-        }
+    const handlePlayFromUrl = async () => {
         if (!isYouTubeUrl || urlAlreadyInPlaylist) return;
-
-        try {
-            // A simple way to get a title - this is a placeholder.
-            // A real implementation might use a backend to fetch the YouTube video title.
-            const title = `Song from URL: ${new URL(searchQuery).pathname}`;
-            addSongToPlaylist(activePlaylist.id, { title, url: searchQuery });
-            toast({ title: "Song Added", description: `Added from URL to ${activePlaylist.name}` });
-            setSearchQuery("");
-            setPopoverOpen(false);
-        } catch (error) {
-             toast({ variant: "destructive", title: "Invalid URL", description: "Could not add song from the provided URL."});
-        }
+        setPopoverOpen(false);
+        await playSongFromUrl(searchQuery);
+        setSearchQuery("");
     }
 
     useEffect(() => {
@@ -113,7 +100,7 @@ export default function SongSearchBar() {
                     <Input
                         ref={inputRef}
                         type="search"
-                        placeholder="Search for a song..."
+                        placeholder="Search for a song or paste a URL..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onFocus={() => { if(searchQuery) setPopoverOpen(true)}}
@@ -129,9 +116,9 @@ export default function SongSearchBar() {
                 <Command>
                     <CommandList>
                         {isYouTubeUrl && !urlAlreadyInPlaylist && (
-                             <CommandItem onSelect={handleAddFromUrl} className="cursor-pointer">
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                <span>Add from YouTube URL</span>
+                             <CommandItem onSelect={handlePlayFromUrl} className="cursor-pointer">
+                                <Youtube className="mr-2 h-4 w-4 text-red-500" />
+                                <span>Play from YouTube</span>
                             </CommandItem>
                         )}
                         {searchResults.length > 0 && (
@@ -150,6 +137,11 @@ export default function SongSearchBar() {
                         <CommandEmpty>
                             {searchQuery.trim().length > 1 && !isYouTubeUrl && "No songs found."}
                             {isYouTubeUrl && urlAlreadyInPlaylist && "This song is already in a playlist."}
+                             {searchQuery.trim().length > 1 && !isYouTubeUrl && !searchResults.length && (
+                                <div className="p-4 text-sm text-center text-muted-foreground">
+                                    No songs found. Try pasting a YouTube URL.
+                                </div>
+                            )}
                         </CommandEmpty>
                     </CommandList>
                 </Command>
