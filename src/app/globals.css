@@ -69,19 +69,4 @@ body {
   body {
     @apply bg-background text-foreground;
   }
-  
-  body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-image: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%);
-    z-index: -1;
-  }
-
-  .dark body::before {
-    background-image: linear-gradient(to right, #434343 0%, black 100%);
-  }
 }

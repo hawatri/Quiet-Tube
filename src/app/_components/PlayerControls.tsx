@@ -16,7 +16,7 @@ import {
   Shuffle,
   Music,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getYouTubeThumbnail } from "@/lib/utils";
 
 const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return "0:00";
@@ -25,25 +25,6 @@ const formatTime = (seconds: number) => {
     const mm = date.getUTCMinutes().toString();
     return `${mm}:${ss}`;
 };
-
-const getYouTubeThumbnail = (url: string) => {
-    if (!url) return null;
-    let videoId;
-    try {
-        const urlObj = new URL(url);
-        if (urlObj.hostname === "youtu.be") {
-            videoId = urlObj.pathname.slice(1);
-        } else {
-            videoId = urlObj.searchParams.get("v");
-        }
-    } catch (error) {
-        return null;
-    }
-    
-    if (!videoId) return null;
-
-    return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-}
 
 export default function PlayerControls() {
   const {
