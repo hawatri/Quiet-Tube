@@ -3,11 +3,14 @@
   "short_name": "QuietTube",
   "description": "Listen to YouTube music without distractions.",
   "start_url": "/",
-  "display": "minimal-ui",
+  "display": "standalone",
   "background_color": "#F0F4F8",
   "theme_color": "#77B5FE",
   "orientation": "portrait-primary",
   "categories": ["music", "entertainment"],
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/favicon.svg",
@@ -27,5 +30,29 @@
       "purpose": "any maskable"
     }
   ],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "background": {
+    "service_worker": "/sw.js",
+    "type": "module"
+  },
+  "permissions": [
+    "background-sync",
+    "notifications",
+    "wake-lock"
+  ],
+  "related_applications": [],
+  "shortcuts": [
+    {
+      "name": "Play Music",
+      "short_name": "Play",
+      "description": "Start playing music",
+      "url": "/?action=play",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
 }

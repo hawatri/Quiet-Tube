@@ -1,12 +1,26 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import ReactPlayer from "react-player/youtube";
 import { usePlayer } from "@/hooks/usePlayer";
+import { useBackgroundAudio } from "@/hooks/useBackgroundAudio";
 
 // Wake Lock API
 let wakeLock: WakeLockSentinel | null = null;
 let audioContext: AudioContext | null = null;
+let backgroundAudio: HTMLAudioElement | null = null;
+
+// Register Service Worker for background playback
+const registerServiceWorker = async () => {
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('Service Worker registered:', registration);
+    } catch (error) {
+      console.log('Service Worker registration failed:', error);
+    }
+  }
+};
 
 const requestWakeLock = async () => {
   if ("wakeLock" in navigator) {
@@ -59,6 +73,42 @@ const resumeAudioContext = async () => {
   }
 };
 
+// Create background audio element for better Android support
+const createBackgroundAudio = () => {
+  if (!backgroundAudio && typeof window !== 'undefined') {
+    backgroundAudio = new Audio();
+    backgroundAudio.preload = 'auto';
+    backgroundAudio.loop = false;
+    backgroundAudio.volume = 0.01; // Very low volume, just to keep audio active
+    backgroundAudio.muted = true; // Muted to avoid hearing it
+    console.log("Background audio element created");
+  }
+};
+
+// Play background audio to keep audio context active
+const playBackgroundAudio = async () => {
+  if (backgroundAudio) {
+    try {
+      // Create a silent audio buffer
+      if (audioContext) {
+        const buffer = audioContext.createBuffer(1, 44100, 44100);
+        const source = audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioContext.destination);
+        source.start();
+        source.stop(0.1);
+      }
+      
+      // Also play the background audio element
+      backgroundAudio.currentTime = 0;
+      await backgroundAudio.play();
+      console.log("Background audio playing");
+    } catch (err) {
+      console.error("Failed to play background audio:", err);
+    }
+  }
+};
+
 export default function Player() {
   const {
     isPlaying,
@@ -75,9 +125,19 @@ export default function Player() {
     playerRef,
   } = usePlayer();
 
-  // Initialize audio context on component mount
+  // Use the background audio hook
+  useBackgroundAudio({
+    isPlaying,
+    onPlay: togglePlay,
+    onPause: togglePlay,
+    onNext: playNext,
+  });
+
+  // Initialize audio context and service worker on component mount
   useEffect(() => {
     initializeAudioContext();
+    createBackgroundAudio();
+    registerServiceWorker();
   }, []);
 
   // This effect handles the Media Session API for background playback controls
@@ -130,6 +190,7 @@ export default function Player() {
     if (isPlaying) {
       resumeAudioContext();
       requestWakeLock();
+      playBackgroundAudio();
     } else {
       releaseWakeLock();
     }
@@ -146,6 +207,11 @@ export default function Player() {
             requestWakeLock();
           }
         }
+      } else {
+        // When page becomes hidden, ensure audio keeps playing
+        if (isPlaying) {
+          playBackgroundAudio();
+        }
       }
     };
 
@@ -156,7 +222,9 @@ export default function Player() {
     const handlePageHide = (e: PageTransitionEvent) => {
       // Keep audio playing when page is hidden
       console.log("Page hidden, maintaining playback");
-      // Don't release wake lock to keep audio playing
+      if (isPlaying) {
+        playBackgroundAudio();
+      }
     };
 
     const handlePageShow = (e: PageTransitionEvent) => {
@@ -177,6 +245,24 @@ export default function Player() {
     const handleBlur = () => {
       // Don't pause on blur to allow background playback
       console.log("Window blurred, maintaining playback");
+      if (isPlaying) {
+        playBackgroundAudio();
+      }
+    };
+
+    // Handle app state changes (Android WebView)
+    const handleAppStateChange = () => {
+      if (isPlaying) {
+        resumeAudioContext();
+        playBackgroundAudio();
+      }
+    };
+
+    const handleAppPause = () => {
+      console.log("App paused, maintaining audio");
+      if (isPlaying) {
+        playBackgroundAudio();
+      }
     };
 
     // Add event listeners for better Android support
@@ -188,17 +274,25 @@ export default function Player() {
     window.addEventListener('blur', handleBlur);
 
     // Additional Android-specific events
-    const handleAppStateChange = () => {
-      if (isPlaying) {
+    document.addEventListener('resume', handleAppStateChange);
+    document.addEventListener('pause', handleAppPause);
+
+    // Handle audio context state changes
+    if (audioContext) {
+      audioContext.addEventListener('statechange', () => {
+        console.log('Audio context state:', audioContext?.state);
+        if (audioContext?.state === 'suspended' && isPlaying) {
+          resumeAudioContext();
+        }
+      });
+    }
+
+    // Periodic check to ensure audio context stays active
+    const audioContextCheck = setInterval(() => {
+      if (isPlaying && audioContext?.state === 'suspended') {
         resumeAudioContext();
       }
-    };
-
-    // Listen for app state changes (Android WebView)
-    document.addEventListener('resume', handleAppStateChange);
-    document.addEventListener('pause', () => {
-      console.log("App paused, maintaining audio");
-    });
+    }, 5000);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -208,7 +302,8 @@ export default function Player() {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('blur', handleBlur);
       document.removeEventListener('resume', handleAppStateChange);
-      document.removeEventListener('pause', () => {});
+      document.removeEventListener('pause', handleAppPause);
+      clearInterval(audioContextCheck);
       releaseWakeLock();
     };
   }, [isPlaying]);
@@ -220,6 +315,10 @@ export default function Player() {
       if (audioContext) {
         audioContext.close();
         audioContext = null;
+      }
+      if (backgroundAudio) {
+        backgroundAudio.pause();
+        backgroundAudio = null;
       }
     };
   }, []);
@@ -259,6 +358,7 @@ export default function Player() {
     }
     resumeAudioContext();
     requestWakeLock();
+    playBackgroundAudio();
   }
 
   const handleOnPause = () => {
@@ -272,6 +372,7 @@ export default function Player() {
     if (isPlaying) {
       resumeAudioContext();
       requestWakeLock();
+      playBackgroundAudio();
     }
   };
 
@@ -279,6 +380,7 @@ export default function Player() {
     console.log("Playback started");
     resumeAudioContext();
     requestWakeLock();
+    playBackgroundAudio();
   };
 
   return (
