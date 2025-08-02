@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -13,11 +14,14 @@ const requestWakeLock = async () => {
       wakeLock = await navigator.wakeLock.request("screen");
       wakeLock.addEventListener("release", () => {
         // The wake lock was released, for example, because the user switched tabs.
-        // We'll try to re-acquire it later when the page becomes visible again.
         wakeLock = null;
       });
     } catch (err: any) {
-      console.error(`${err.name}, ${err.message}`);
+      // Fail silently if the browser's policy doesn't allow wake lock.
+      // This is expected in some environments (e.g., iframes).
+      if (err.name !== 'NotAllowedError') {
+         console.error(`${err.name}, ${err.message}`);
+      }
     }
   }
 };
