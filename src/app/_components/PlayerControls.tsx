@@ -49,6 +49,14 @@ export default function PlayerControls() {
   const handleSeek = (value: number[]) => {
     if (duration > 0) {
         seek(value[0]);
+        // Update media session position
+        if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+          navigator.mediaSession.setPositionState({
+            duration: duration,
+            playbackRate: 1,
+            position: value[0],
+          });
+        }
     }
   };
 

@@ -213,6 +213,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
          setProgress(0);
          setDuration(0);
          setIsPlaying(true);
+         // Update media session position
+         if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+           navigator.mediaSession.setPositionState({
+             duration: 0,
+             playbackRate: 1,
+             position: 0,
+           });
+         }
          return;
       }
       if (currentTrackIndex !== null) {
@@ -246,6 +254,15 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setProgress(0);
     setDuration(0);
     setIsPlaying(true);
+   
+   // Update media session position
+   if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+     navigator.mediaSession.setPositionState({
+       duration: 0,
+       playbackRate: 1,
+       position: 0,
+     });
+   }
   }, [playingPlaylist, currentTrackIndex, isShuffled, loop, queue, generateShuffleOrder]);
 
   const playPrevious = () => {
