@@ -52,7 +52,7 @@ export default function AddSongDialog({ isOpen, setIsOpen }: AddSongDialogProps)
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add Song to "{activePlaylist?.name}"</DialogTitle>
+          <DialogTitle>Add Song to &quot;{activePlaylist?.name}&quot;</DialogTitle>
           <DialogDescription>
             Enter the title and YouTube URL of the song you want to add.
           </DialogDescription>

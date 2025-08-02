@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect } from "react";
 import ReactPlayer from "react-player/youtube";
 import { usePlayer } from "@/hooks/usePlayer";
 import { useBackgroundAudio } from "@/hooks/useBackgroundAudio";
@@ -31,8 +31,8 @@ const requestWakeLock = async () => {
         console.log("Wake lock released");
         wakeLock = null;
       });
-    } catch (err: any) {
-      console.error(`${err.name}, ${err.message}`);
+    } catch (err: unknown) {
+      console.error(`Error: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 };
@@ -43,8 +43,8 @@ const releaseWakeLock = async () => {
       await wakeLock.release();
       wakeLock = null;
       console.log("Wake lock manually released");
-    } catch (err: any) {
-       console.error(`${err.name}, ${err.message}`);
+    } catch (err: unknown) {
+       console.error(`Error: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 };
@@ -55,7 +55,7 @@ const initializeAudioContext = () => {
     try {
       audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       console.log("Audio context initialized");
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Failed to initialize audio context:", err);
     }
   }
@@ -67,7 +67,7 @@ const resumeAudioContext = async () => {
     try {
       await audioContext.resume();
       console.log("Audio context resumed");
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Failed to resume audio context:", err);
     }
   }
@@ -103,7 +103,7 @@ const playBackgroundAudio = async () => {
       backgroundAudio.currentTime = 0;
       await backgroundAudio.play();
       console.log("Background audio playing");
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Failed to play background audio:", err);
     }
   }
@@ -219,21 +219,21 @@ export default function Player() {
       releaseWakeLock();
     };
 
-    const handlePageHide = (e: PageTransitionEvent) => {
-      // Keep audio playing when page is hidden
-      console.log("Page hidden, maintaining playback");
-      if (isPlaying) {
-        playBackgroundAudio();
-      }
-    };
+      const handlePageHide = () => {
+    // Keep audio playing when page is hidden
+    console.log("Page hidden, maintaining playback");
+    if (isPlaying) {
+      playBackgroundAudio();
+    }
+  };
 
-    const handlePageShow = (e: PageTransitionEvent) => {
-      console.log("Page shown");
-      if (isPlaying) {
-        resumeAudioContext();
-        requestWakeLock();
-      }
-    };
+  const handlePageShow = () => {
+    console.log("Page shown");
+    if (isPlaying) {
+      resumeAudioContext();
+      requestWakeLock();
+    }
+  };
 
     const handleFocus = () => {
       if (isPlaying) {
@@ -329,7 +329,7 @@ export default function Player() {
     }
   };
   
-  const handleError = (e: any) => {
+  const handleError = (e: unknown) => {
     console.error("Player Error", e);
     // Optionally skip to next song on error
     playNext();
@@ -402,17 +402,15 @@ export default function Player() {
         width="0"
         height="0"
         config={{
-          youtube: {
-            playerVars: { 
-              autoplay: 1,
-              controls: 0,
-              playsinline: 1,
-              enablejsapi: 1,
-              origin: typeof window !== 'undefined' ? window.location.origin : '',
-              rel: 0,
-              modestbranding: 1,
-              iv_load_policy: 3,
-            }
+          playerVars: { 
+            autoplay: 1,
+            controls: 0,
+            playsinline: 1,
+            enablejsapi: 1,
+            origin: typeof window !== 'undefined' ? window.location.origin : '',
+            rel: 0,
+            modestbranding: 1,
+            iv_load_policy: 3,
           }
         }}
       />
