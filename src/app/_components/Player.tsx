@@ -29,7 +29,7 @@ const releaseWakeLock = async () => {
       await wakeLock.release();
       wakeLock = null;
       console.log("Wake lock manually released");
-    } catch (err: any)      {
+    } catch (err: any) {
        console.error(`${err.name}, ${err.message}`);
     }
   }
@@ -103,12 +103,12 @@ export default function Player() {
         navigator.mediaSession.setActionHandler("previoustrack", () => playPrevious());
         navigator.mediaSession.setActionHandler("nexttrack", () => playNext());
 
-        // Set position state for better scrubbing support
-        if ('setPositionState' in navigator.mediaSession) {
+        // Set position state for better scrubbing support - only if duration and progress are valid numbers
+        if ('setPositionState' in navigator.mediaSession && typeof duration === 'number' && typeof progress === 'number') {
           navigator.mediaSession.setPositionState({
-            duration: duration || 0,
+            duration: duration > 0 ? duration : 0,
             playbackRate: 1,
-            position: progress || 0,
+            position: progress > 0 ? progress : 0,
           });
         }
       } else {
@@ -135,7 +135,7 @@ export default function Player() {
     }
   }, [isPlaying]);
 
-  // Handle visibility changes and page lifecycle
+  // Handle visibility changes and page lifecycle for Android background playback
   useEffect(() => {
     const handleVisibilityChange = () => {
       console.log("Visibility changed:", document.visibilityState);
@@ -153,12 +153,13 @@ export default function Player() {
       releaseWakeLock();
     };
 
-    const handlePageHide = () => {
+    const handlePageHide = (e: PageTransitionEvent) => {
       // Keep audio playing when page is hidden
       console.log("Page hidden, maintaining playback");
+      // Don't release wake lock to keep audio playing
     };
 
-    const handlePageShow = () => {
+    const handlePageShow = (e: PageTransitionEvent) => {
       console.log("Page shown");
       if (isPlaying) {
         resumeAudioContext();
@@ -173,11 +174,31 @@ export default function Player() {
       }
     };
 
+    const handleBlur = () => {
+      // Don't pause on blur to allow background playback
+      console.log("Window blurred, maintaining playback");
+    };
+
+    // Add event listeners for better Android support
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('pagehide', handlePageHide);
     window.addEventListener('pageshow', handlePageShow);
     window.addEventListener('focus', handleFocus);
+    window.addEventListener('blur', handleBlur);
+
+    // Additional Android-specific events
+    const handleAppStateChange = () => {
+      if (isPlaying) {
+        resumeAudioContext();
+      }
+    };
+
+    // Listen for app state changes (Android WebView)
+    document.addEventListener('resume', handleAppStateChange);
+    document.addEventListener('pause', () => {
+      console.log("App paused, maintaining audio");
+    });
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -185,6 +206,9 @@ export default function Player() {
       window.removeEventListener('pagehide', handlePageHide);
       window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('blur', handleBlur);
+      document.removeEventListener('resume', handleAppStateChange);
+      document.removeEventListener('pause', () => {});
       releaseWakeLock();
     };
   }, [isPlaying]);
@@ -214,6 +238,15 @@ export default function Player() {
 
   const handleProgress = (state: { played: number, playedSeconds: number }) => {
     setProgress(state.playedSeconds);
+    
+    // Update media session position for Android notification controls
+    if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession && duration > 0) {
+      navigator.mediaSession.setPositionState({
+        duration: duration,
+        playbackRate: 1,
+        position: state.playedSeconds,
+      });
+    }
   };
 
   const handleDuration = (duration: number) => {
@@ -225,6 +258,7 @@ export default function Player() {
         togglePlay();
     }
     resumeAudioContext();
+    requestWakeLock();
   }
 
   const handleOnPause = () => {
@@ -232,6 +266,20 @@ export default function Player() {
           togglePlay();
       }
   }
+
+  const handleReady = () => {
+    console.log("Player ready");
+    if (isPlaying) {
+      resumeAudioContext();
+      requestWakeLock();
+    }
+  };
+
+  const handleStart = () => {
+    console.log("Playback started");
+    resumeAudioContext();
+    requestWakeLock();
+  };
 
   return (
     <div style={{ display: 'none' }}>
@@ -247,6 +295,8 @@ export default function Player() {
         onProgress={handleProgress}
         onDuration={handleDuration}
         onError={handleError}
+        onReady={handleReady}
+        onStart={handleStart}
         width="0"
         height="0"
         config={{
@@ -257,6 +307,9 @@ export default function Player() {
               playsinline: 1,
               enablejsapi: 1,
               origin: typeof window !== 'undefined' ? window.location.origin : '',
+              rel: 0,
+              modestbranding: 1,
+              iv_load_policy: 3,
             }
           }
         }}
