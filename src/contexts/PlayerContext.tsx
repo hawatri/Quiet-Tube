@@ -189,9 +189,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const playTrack = (playlistId: string, trackIndex: number) => {
     setQueue([]);
     setPlayingPlaylistId(playlistId);
-    if (activePlaylistId !== playlistId) {
-      setActivePlaylistId(playlistId);
-    }
+    setActivePlaylistId(playlistId);
     setCurrentTrackIndex(trackIndex);
     setProgress(0);
     setDuration(0);

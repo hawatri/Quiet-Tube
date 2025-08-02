@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { MoreVertical } from 'lucide-react';
 import { ThemeToggle } from "./ThemeToggle";
+import SongSearchBar from "./SongSearchBar";
 
 
 export default function PlaylistSidebar() {
@@ -105,6 +106,10 @@ export default function PlaylistSidebar() {
                 <div className="hidden md:block">
                   <ThemeToggle />
                 </div>
+            </div>
+
+            <div className="mb-4">
+              <SongSearchBar />
             </div>
            
             <div className="flex flex-col space-y-2">
