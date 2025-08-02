@@ -138,7 +138,7 @@ export default function SongSearchBar() {
                 align="start"
                 onOpenAutoFocus={(e) => e.preventDefault()}
             >
-                <Command>
+                <Command className="bg-transparent">
                     <CommandList>
                         {isYouTubeUrl && !urlAlreadyInPlaylist && (
                              <CommandItem onSelect={handlePlayFromUrl} className="cursor-pointer">
