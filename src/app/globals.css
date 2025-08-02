@@ -36,24 +36,24 @@ body {
     --radius: 0.5rem;
   }
   .dark {
-    --background: 220 13% 10%;
+    --background: 220 13% 18%;
     --foreground: 213 27% 95%;
-    --card: 220 13% 12% / 0.7;
+    --card: 220 13% 20% / 0.7;
     --card-foreground: 213 27% 95%;
-    --popover: 220 13% 10%;
+    --popover: 220 13% 18%;
     --popover-foreground: 213 27% 95%;
     --primary: 211 98% 73%;
     --primary-foreground: 224 71% 4%;
-    --secondary: 220 13% 18%;
+    --secondary: 220 13% 22%;
     --secondary-foreground: 213 27% 95%;
-    --muted: 220 13% 18% / 0.7;
-    --muted-foreground: 213 27% 60%;
+    --muted: 220 13% 22% / 0.7;
+    --muted-foreground: 213 27% 70%;
     --accent: 54 78% 75% / 0.7;
     --accent-foreground: 54 90% 15%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 220 13% 18% / 0.5;
-    --input: 220 13% 18%;
+    --border: 220 13% 28% / 0.5;
+    --input: 220 13% 28%;
     --ring: 211 98% 73%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -75,5 +75,22 @@ body {
 @layer components {
     .wavy-slider-track, .wavy-slider-range {
         clip-path: url(#wave);
+    }
+    .liquid-gradient {
+      background: linear-gradient(-45deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--chart-1)), hsl(var(--chart-4)));
+      background-size: 400% 400%;
+      animation: gradient-flow 15s ease infinite;
+    }
+
+    @keyframes gradient-flow {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
     }
 }
