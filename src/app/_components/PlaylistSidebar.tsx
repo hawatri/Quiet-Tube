@@ -99,7 +99,7 @@ export default function PlaylistSidebar() {
       <aside className="w-full flex flex-col bg-card/60 backdrop-blur-xl h-full md:border-r md:border-border">
         <div className="p-4 border-b border-border">
             <div className="flex justify-between items-center mb-4">
-                 <h1 className="text-2xl font-bold text-primary-foreground font-headline">
+                 <h1 className="text-2xl font-bold text-foreground font-headline">
                     QuietTube
                 </h1>
                 <div className="hidden md:block">
