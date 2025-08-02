@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from "next/image";
@@ -10,7 +11,7 @@ export default function PlayerBackground() {
 
     return (
         <>
-            {thumbnail && (
+            {thumbnail ? (
                 <div className="fixed inset-0 z-0 overflow-hidden">
                     <Image
                         src={thumbnail}
@@ -22,6 +23,8 @@ export default function PlayerBackground() {
                     />
                      <div className="absolute inset-0 bg-black/20 dark:bg-black/50" />
                 </div>
+            ) : (
+                <div className="fixed inset-0 z-0 bg-background" />
             )}
         </>
     )
