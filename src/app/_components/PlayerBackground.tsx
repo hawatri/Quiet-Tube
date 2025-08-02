@@ -17,7 +17,7 @@ export default function PlayerBackground() {
                         alt="Background"
                         layout="fill"
                         objectFit="cover"
-                        className="opacity-20 blur-2xl scale-110"
+                        className="opacity-30 blur-xl scale-110"
                         quality={75}
                     />
                      <div className="absolute inset-0 bg-black/20 dark:bg-black/50" />
