@@ -70,6 +70,8 @@ export default function Player() {
     togglePlay,
     setProgress,
     setDuration,
+    duration,
+    progress,
     playerRef,
   } = usePlayer();
 
