@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
@@ -6,9 +5,10 @@ import { usePlayer } from "@/hooks/usePlayer";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandGroup, CommandItem, CommandList, CommandEmpty } from "@/components/ui/command";
-import { Music, Youtube, PlusCircle, Search } from "lucide-react";
+import { Music, Youtube, Search } from "lucide-react";
 import type { Song, Playlist } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { getYoutubeVideoDetails } from "@/ai/flows/youtube";
 
 interface SearchResult {
     song: Song;
@@ -16,13 +16,15 @@ interface SearchResult {
 }
 
 export default function SongSearchBar() {
-    const { playlists, playTrack, activePlaylist, addSongToPlaylist, playSongFromUrl } = usePlayer();
+    const { playlists, playTrack, activePlaylist, addSongToPlaylist } = usePlayer();
     const [searchQuery, setSearchQuery] = useState("");
     const [isPopoverOpen, setPopoverOpen] = useState(false);
     const { toast } = useToast();
     const inputRef = useRef<HTMLInputElement>(null);
+     const [isFetching, setIsFetching] = useState(false);
 
     const isYouTubeUrl = useMemo(() => {
+        if (!searchQuery.startsWith("https://")) return false;
         try {
             const url = new URL(searchQuery);
             return url.hostname.includes("youtube.com") || url.hostname.includes("youtu.be");
@@ -65,10 +67,32 @@ export default function SongSearchBar() {
     };
 
     const handlePlayFromUrl = async () => {
-        if (!isYouTubeUrl || urlAlreadyInPlaylist) return;
+        if (!isYouTubeUrl || !activePlaylist) return;
+        
+        setIsFetching(true);
         setPopoverOpen(false);
-        await playSongFromUrl(searchQuery);
-        setSearchQuery("");
+        const loadingToast = toast({ title: "Getting song details..." });
+
+        try {
+            const { title } = await getYoutubeVideoDetails(searchQuery);
+            const newSong = addSongToPlaylist(activePlaylist.id, { title, url: searchQuery });
+            
+            if (newSong) {
+                const newSongIndex = activePlaylist.songs.length; // It's the last song added
+                playTrack(activePlaylist.id, newSongIndex);
+            }
+
+            loadingToast.dismiss();
+            toast({ title: "Now Playing", description: title });
+            setSearchQuery("");
+
+        } catch (error) {
+            loadingToast.dismiss();
+            toast({ variant: "destructive", title: "Could not play song", description: "Failed to fetch video details from YouTube." });
+            console.error(error);
+        } finally {
+            setIsFetching(false);
+        }
     }
 
     useEffect(() => {
@@ -100,11 +124,12 @@ export default function SongSearchBar() {
                     <Input
                         ref={inputRef}
                         type="search"
-                        placeholder="Search for a song or paste a URL..."
+                        placeholder="Search songs or paste a YouTube URL..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onFocus={() => { if(searchQuery) setPopoverOpen(true)}}
                         className="pl-9"
+                        disabled={isFetching}
                     />
                 </div>
             </PopoverTrigger>
@@ -121,6 +146,12 @@ export default function SongSearchBar() {
                                 <span>Play from YouTube</span>
                             </CommandItem>
                         )}
+                         {isYouTubeUrl && urlAlreadyInPlaylist && (
+                             <CommandItem disabled className="cursor-not-allowed text-muted-foreground">
+                                <Youtube className="mr-2 h-4 w-4" />
+                                <span>Song is already in a playlist</span>
+                            </CommandItem>
+                        )}
                         {searchResults.length > 0 && (
                             <CommandGroup heading="Songs in your playlists">
                                 {searchResults.map(result => (
@@ -135,9 +166,9 @@ export default function SongSearchBar() {
                             </CommandGroup>
                         )}
                         <CommandEmpty>
-                            {searchQuery.trim().length > 1 && !isYouTubeUrl && "No songs found."}
-                            {isYouTubeUrl && urlAlreadyInPlaylist && "This song is already in a playlist."}
-                             {searchQuery.trim().length > 1 && !isYouTubeUrl && !searchResults.length && (
+                            {searchQuery.trim().length > 1 && !isYouTubeUrl && !isFetching && "No songs found."}
+                             {isFetching && "Fetching..."}
+                             {searchQuery.trim().length > 1 && !isYouTubeUrl && !searchResults.length && !isFetching && (
                                 <div className="p-4 text-sm text-center text-muted-foreground">
                                     No songs found. Try pasting a YouTube URL.
                                 </div>

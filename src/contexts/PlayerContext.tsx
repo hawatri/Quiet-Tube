@@ -4,7 +4,6 @@ import { createContext, useState, useEffect, useCallback, ReactNode, useRef } fr
 import type { Playlist, Song } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-import { getYoutubeVideoDetails } from "@/ai/flows/youtube";
 
 const SongSchema = z.object({
   id: z.string(),
@@ -36,7 +35,7 @@ export interface PlayerContextType {
   createPlaylist: (name: string) => void;
   deletePlaylist: (playlistId: string) => void;
   updatePlaylistName: (playlistId: string, newName: string) => void;
-  addSongToPlaylist: (playlistId: string, song: Omit<Song, "id">) => void;
+  addSongToPlaylist: (playlistId: string, song: Omit<Song, "id">) => Song | undefined;
   removeSongFromPlaylist: (playlistId: string, songId: string) => void;
   selectPlaylist: (playlistId: string | null) => void;
   playTrack: (playlistId: string, trackIndex: number) => void;
@@ -53,13 +52,11 @@ export interface PlayerContextType {
   seek: (seconds: number) => void;
   playerRef: React.RefObject<any>;
   queueNext: (song: Song) => void;
-  playSongFromUrl: (url: string) => Promise<void>;
 }
 
 export const PlayerContext = createContext<PlayerContextType | null>(null);
 
 const STORAGE_KEY = "quietTubePlaylists";
-const AI_PLAYLIST_ID = "ai-generated-playlist";
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
@@ -86,33 +83,23 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         const validation = PlaylistsSchema.safeParse(parsed);
         if (validation.success) {
           const loadedPlaylists = validation.data;
-          if (!loadedPlaylists.find(p => p.id === AI_PLAYLIST_ID)) {
-             loadedPlaylists.push({ id: AI_PLAYLIST_ID, name: "AI Playlist", songs: [] });
-          }
           setPlaylists(loadedPlaylists);
-          const userPlaylists = loadedPlaylists.filter(p => p.id !== AI_PLAYLIST_ID);
-          if (userPlaylists.length > 0 && !activePlaylistId) {
-            setActivePlaylistId(userPlaylists[0].id);
+          if (loadedPlaylists.length > 0 && !activePlaylistId) {
+            setActivePlaylistId(loadedPlaylists[0].id);
           }
         }
       } else {
-         setPlaylists([{ id: AI_PLAYLIST_ID, name: "AI Playlist", songs: [] }]);
+         setPlaylists([]);
       }
     } catch (error) {
       console.error("Failed to load playlists from localStorage", error);
-       setPlaylists([{ id: AI_PLAYLIST_ID, name: "AI Playlist", songs: [] }]);
+       setPlaylists([]);
     }
   }, []);
 
   useEffect(() => {
     try {
-      const playlistsToSave = playlists.map(p => {
-        if (p.id === AI_PLAYLIST_ID) {
-          return { ...p, songs: [] }; // Don't persist AI playlist songs
-        }
-        return p;
-      });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(playlistsToSave));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(playlists));
     } catch (error) {
       console.error("Failed to save playlists to localStorage", error);
     }
@@ -142,7 +129,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const selectPlaylist = (playlistId: string | null) => {
-    if (playlistId === AI_PLAYLIST_ID) return;
     setActivePlaylistId(playlistId);
   };
   
@@ -164,10 +150,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setPlayingPlaylistId(null);
       setCurrentTrackIndex(null);
     }
-    setPlaylists(prev => prev.filter(p => p.id !== playlistId));
+    
+    const newPlaylists = playlists.filter(p => p.id !== playlistId);
+    setPlaylists(newPlaylists);
+
     if (activePlaylistId === playlistId) {
-      const remainingPlaylists = playlists.filter(p => p.id !== playlistId && p.id !== AI_PLAYLIST_ID);
-      selectPlaylist(remainingPlaylists.length > 0 ? remainingPlaylists[0].id : null);
+      selectPlaylist(newPlaylists.length > 0 ? newPlaylists[0].id : null);
     }
   };
 
@@ -175,9 +163,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setPlaylists(prev => prev.map(p => p.id === playlistId ? { ...p, name: newName } : p));
   };
 
-  const addSongToPlaylist = (playlistId: string, song: Omit<Song, "id">) => {
+  const addSongToPlaylist = (playlistId: string, song: Omit<Song, "id">): Song | undefined => {
     const newSong: Song = { ...song, id: crypto.randomUUID() };
-    setPlaylists(prev => prev.map(p => p.id === playlistId ? { ...p, songs: [...p.songs, newSong] } : p));
+    let songAdded = false;
+    setPlaylists(prev => prev.map(p => {
+        if (p.id === playlistId) {
+            songAdded = true;
+            return { ...p, songs: [...p.songs, newSong] };
+        }
+        return p;
+    }));
+    return songAdded ? newSong : undefined;
   };
   
   const removeSongFromPlaylist = (playlistId: string, songId: string) => {
@@ -205,42 +201,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   };
 
   const playTrack = (playlistId: string, trackIndex: number) => {
+    const playlist = playlists.find(p => p.id === playlistId);
+    if (!playlist || !playlist.songs[trackIndex]) return;
+
     setQueue([]);
     setPlayingPlaylistId(playlistId);
-    if (playlistId !== AI_PLAYLIST_ID) {
-      setActivePlaylistId(playlistId);
-    }
+    setActivePlaylistId(playlistId);
     setCurrentTrackIndex(trackIndex);
     setProgress(0);
     setDuration(0);
     setIsPlaying(true);
-  };
-
-  const playSongFromUrl = async (url: string) => {
-    const loadingToast = toast({ title: "Getting song details..." });
-    try {
-        const details = await getYoutubeVideoDetails(url);
-        const newSong: Song = { id: crypto.randomUUID(), title: details.title, url };
-        
-        setPlaylists(prev => prev.map(p => {
-            if (p.id === AI_PLAYLIST_ID) {
-                // Replace any existing song with the new one
-                return { ...p, songs: [newSong] };
-            }
-            return p;
-        }));
-        
-        // This needs to be slightly delayed to ensure state update completes
-        setTimeout(() => playTrack(AI_PLAYLIST_ID, 0), 0);
-        
-        loadingToast.dismiss();
-        toast({ title: "Now Playing", description: newSong.title });
-
-    } catch (error) {
-        loadingToast.dismiss();
-        toast({ variant: "destructive", title: "Could not play song", description: "Failed to fetch video details from YouTube." });
-        console.error(error);
-    }
   };
 
   const togglePlay = () => {
@@ -270,11 +240,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
     if (!playingPlaylist || currentTrackIndex === null || playingPlaylist.songs.length === 0) return;
   
-    if (playingPlaylistId === AI_PLAYLIST_ID) {
-        setIsPlaying(false);
-        return;
-    }
-
     if (!loop && !isShuffled && currentTrackIndex === playingPlaylist.songs.length - 1) {
         setIsPlaying(false);
         return;
@@ -296,10 +261,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setProgress(0);
     setDuration(0);
     setIsPlaying(true);
-  }, [playingPlaylist, currentTrackIndex, isShuffled, loop, queue, generateShuffleOrder, playingPlaylistId]);
+  }, [playingPlaylist, currentTrackIndex, isShuffled, loop, queue, generateShuffleOrder]);
 
   const playPrevious = () => {
-    if (queue.length > 0 || playingPlaylistId === AI_PLAYLIST_ID) {
+    if (queue.length > 0) {
       return;
     }
 
@@ -350,7 +315,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
             filename = `${dataToExport.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.music`;
         }
     } else {
-        dataToExport = playlists.filter(p => p.id !== AI_PLAYLIST_ID);
+        dataToExport = playlists;
     }
 
     if (!dataToExport || (Array.isArray(dataToExport) && dataToExport.length === 0)) {
@@ -451,7 +416,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
 
   const value: PlayerContextType = {
-    playlists: playlists.filter(p => p.id !== AI_PLAYLIST_ID),
+    playlists,
     activePlaylistId,
     playingPlaylistId,
     currentTrackIndex,
@@ -483,7 +448,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     seek,
     playerRef,
     queueNext,
-    playSongFromUrl,
   };
 
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;

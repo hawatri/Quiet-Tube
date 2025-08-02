@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { getYoutubeVideoDetails } from "@/ai/flows/youtube";
 
 interface AddSongDialogProps {
   isOpen: boolean;
@@ -23,30 +24,37 @@ interface AddSongDialogProps {
 
 export default function AddSongDialog({ isOpen, setIsOpen }: AddSongDialogProps) {
   const { activePlaylist, addSongToPlaylist } = usePlayer();
-  const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
+  const [isFetchingTitle, setIsFetchingTitle] = useState(false);
   const { toast } = useToast();
 
-  const handleAddSong = () => {
+  const handleAddSong = async () => {
     if (!activePlaylist) {
         toast({ variant: "destructive", title: "No active playlist", description: "Please select a playlist first."});
         return;
     }
-    if (title.trim() && url.trim()) {
+    if (url.trim()) {
       try {
         new URL(url); // Validate URL
+        setIsFetchingTitle(true);
+        const { title } = await getYoutubeVideoDetails(url);
         addSongToPlaylist(activePlaylist.id, { title, url });
-        setTitle("");
         setUrl("");
         setIsOpen(false);
         toast({ title: "Song added!", description: `"${title}" was added to ${activePlaylist.name}.` });
       } catch (error) {
         toast({ variant: "destructive", title: "Invalid URL", description: "Please enter a valid YouTube URL." });
+      } finally {
+        setIsFetchingTitle(false);
       }
     } else {
-        toast({ variant: "destructive", title: "Missing fields", description: "Please provide both a title and a URL." });
+        toast({ variant: "destructive", title: "Missing fields", description: "Please provide a URL." });
     }
   };
+  
+  const handleUrlChange = async (newUrl: string) => {
+      setUrl(newUrl);
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -54,22 +62,10 @@ export default function AddSongDialog({ isOpen, setIsOpen }: AddSongDialogProps)
         <DialogHeader>
           <DialogTitle>Add Song to "{activePlaylist?.name}"</DialogTitle>
           <DialogDescription>
-            Enter the title and YouTube URL of the song you want to add.
+            Enter the YouTube URL of the song you want to add. We'll fetch the title automatically.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="title" className="text-right">
-              Title
-            </Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="col-span-3"
-              placeholder="e.g., Lo-fi Hip Hop Radio"
-            />
-          </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="url" className="text-right">
               URL
@@ -77,17 +73,20 @@ export default function AddSongDialog({ isOpen, setIsOpen }: AddSongDialogProps)
             <Input
               id="url"
               value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              onChange={(e) => handleUrlChange(e.target.value)}
               className="col-span-3"
               placeholder="https://www.youtube.com/watch?v=..."
+              disabled={isFetchingTitle}
             />
           </div>
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="secondary">Cancel</Button>
+            <Button type="button" variant="secondary" disabled={isFetchingTitle}>Cancel</Button>
           </DialogClose>
-          <Button onClick={handleAddSong}>Add Song</Button>
+          <Button onClick={handleAddSong} disabled={isFetchingTitle}>
+            {isFetchingTitle ? "Adding..." : "Add Song"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
