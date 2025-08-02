@@ -134,7 +134,7 @@ export default function SongSearchBar() {
                 </div>
             </PopoverTrigger>
             <PopoverContent 
-                className="w-[--radix-popover-trigger-width] p-0 bg-card/60 backdrop-blur-xl border-border" 
+                className="w-[--radix-popover-trigger-width] p-0 bg-transparent backdrop-blur-sm border-border/50" 
                 align="start"
                 onOpenAutoFocus={(e) => e.preventDefault()}
             >
