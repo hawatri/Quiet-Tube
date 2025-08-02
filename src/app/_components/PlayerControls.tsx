@@ -1,5 +1,7 @@
+
 "use client";
 
+import Image from "next/image";
 import { usePlayer } from "@/hooks/usePlayer";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -23,6 +25,25 @@ const formatTime = (seconds: number) => {
     const mm = date.getUTCMinutes().toString();
     return `${mm}:${ss}`;
 };
+
+const getYouTubeThumbnail = (url: string) => {
+    if (!url) return null;
+    let videoId;
+    try {
+        const urlObj = new URL(url);
+        if (urlObj.hostname === "youtu.be") {
+            videoId = urlObj.pathname.slice(1);
+        } else {
+            videoId = urlObj.searchParams.get("v");
+        }
+    } catch (error) {
+        return null;
+    }
+    
+    if (!videoId) return null;
+
+    return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+}
 
 export default function PlayerControls() {
   const {
@@ -52,6 +73,8 @@ export default function PlayerControls() {
     }
   };
 
+  const thumbnail = currentTrack ? getYouTubeThumbnail(currentTrack.url) : null;
+
   return (
     <>
       <footer className="fixed bottom-0 left-0 right-0 h-24 bg-card/60 backdrop-blur-xl border-t border-border z-50">
@@ -60,8 +83,12 @@ export default function PlayerControls() {
           <div className="w-1/4 flex items-center gap-3">
           {currentTrack ? (
               <>
-              <div className="h-14 w-14 bg-muted/80 rounded-md flex items-center justify-center">
-                  <Music className="h-8 w-8 text-muted-foreground" />
+              <div className="h-14 w-14 bg-muted/80 rounded-md flex items-center justify-center relative overflow-hidden">
+                  {thumbnail ? (
+                      <Image src={thumbnail} alt={currentTrack.title} layout="fill" objectFit="cover" />
+                  ) : (
+                    <Music className="h-8 w-8 text-muted-foreground" />
+                  )}
               </div>
               <div className="hidden sm:block">
                   <p className="font-semibold truncate">{currentTrack.title}</p>
@@ -143,3 +170,4 @@ export default function PlayerControls() {
     </>
   );
 }
+
