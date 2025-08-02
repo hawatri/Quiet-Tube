@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { usePlayer } from "@/hooks/usePlayer";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandGroup, CommandItem, CommandList, CommandEmpty } from "@/components/ui/command";
+import { Command, CommandGroup, CommandItem, CommandEmpty } from "@/components/ui/command";
 import { Music, Youtube, Search } from "lucide-react";
 import type { Song, Playlist } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -49,7 +49,7 @@ export default function SongSearchBar() {
             });
         });
 
-        return results;
+        return results.slice(0, 5);
     }, [searchQuery, playlists, isYouTubeUrl]);
     
     const urlAlreadyInPlaylist = useMemo(() => {
@@ -78,8 +78,10 @@ export default function SongSearchBar() {
             const newSong = addSongToPlaylist(activePlaylist.id, { title, url: searchQuery });
             
             if (newSong) {
-                const newSongIndex = activePlaylist.songs.length; // It's the last song added
-                playTrack(activePlaylist.id, newSongIndex);
+                const newSongIndex = activePlaylist.songs.findIndex(s => s.id === newSong.id);
+                 if (newSongIndex !== -1) {
+                    playTrack(activePlaylist.id, newSongIndex);
+                }
             }
 
             loadingToast.dismiss();
@@ -134,47 +136,45 @@ export default function SongSearchBar() {
                 </div>
             </PopoverTrigger>
             <PopoverContent 
-                className="w-[--radix-popover-trigger-width] p-0 bg-transparent backdrop-blur-sm border-border/50" 
+                className="w-[--radix-popover-trigger-width] p-0 bg-transparent backdrop-blur-sm border-none" 
                 align="start"
                 onOpenAutoFocus={(e) => e.preventDefault()}
             >
-                <Command className="bg-transparent">
-                    <CommandList>
-                        {isYouTubeUrl && !urlAlreadyInPlaylist && (
-                             <CommandItem onSelect={handlePlayFromUrl} className="cursor-pointer">
-                                <Youtube className="mr-2 h-4 w-4 text-red-500" />
-                                <span>Play from YouTube</span>
-                            </CommandItem>
+                <Command className="bg-card/10 backdrop-blur-xl">
+                    {isYouTubeUrl && !urlAlreadyInPlaylist && (
+                            <CommandItem onSelect={handlePlayFromUrl} className="cursor-pointer">
+                            <Youtube className="mr-2 h-4 w-4 text-red-500" />
+                            <span>Play from YouTube</span>
+                        </CommandItem>
+                    )}
+                        {isYouTubeUrl && urlAlreadyInPlaylist && (
+                            <CommandItem disabled className="cursor-not-allowed text-muted-foreground">
+                            <Youtube className="mr-2 h-4 w-4" />
+                            <span>Song is already in a playlist</span>
+                        </CommandItem>
+                    )}
+                    {searchResults.length > 0 && (
+                        <CommandGroup heading="Songs in your playlists">
+                            {searchResults.map(result => (
+                                <CommandItem key={result.song.id} onSelect={() => handleSelectSong(result)} className="cursor-pointer">
+                                    <Music className="mr-2 h-4 w-4" />
+                                    <div className="flex-1 truncate">
+                                        <p className="truncate">{result.song.title}</p>
+                                        <p className="text-xs text-muted-foreground truncate">{result.playlist.name}</p>
+                                    </div>
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    )}
+                    <CommandEmpty>
+                        {searchQuery.trim().length > 1 && !isYouTubeUrl && !isFetching && "No songs found."}
+                            {isFetching && "Fetching..."}
+                            {searchQuery.trim().length > 1 && !isYouTubeUrl && !searchResults.length && !isFetching && (
+                            <div className="p-4 text-sm text-center text-muted-foreground">
+                                No songs found. Try pasting a YouTube URL.
+                            </div>
                         )}
-                         {isYouTubeUrl && urlAlreadyInPlaylist && (
-                             <CommandItem disabled className="cursor-not-allowed text-muted-foreground">
-                                <Youtube className="mr-2 h-4 w-4" />
-                                <span>Song is already in a playlist</span>
-                            </CommandItem>
-                        )}
-                        {searchResults.length > 0 && (
-                            <CommandGroup heading="Songs in your playlists">
-                                {searchResults.map(result => (
-                                    <CommandItem key={result.song.id} onSelect={() => handleSelectSong(result)} className="cursor-pointer">
-                                        <Music className="mr-2 h-4 w-4" />
-                                        <div className="flex-1 truncate">
-                                            <p className="truncate">{result.song.title}</p>
-                                            <p className="text-xs text-muted-foreground truncate">{result.playlist.name}</p>
-                                        </div>
-                                    </CommandItem>
-                                ))}
-                            </CommandGroup>
-                        )}
-                        <CommandEmpty>
-                            {searchQuery.trim().length > 1 && !isYouTubeUrl && !isFetching && "No songs found."}
-                             {isFetching && "Fetching..."}
-                             {searchQuery.trim().length > 1 && !isYouTubeUrl && !searchResults.length && !isFetching && (
-                                <div className="p-4 text-sm text-center text-muted-foreground">
-                                    No songs found. Try pasting a YouTube URL.
-                                </div>
-                            )}
-                        </CommandEmpty>
-                    </CommandList>
+                    </CommandEmpty>
                 </Command>
             </PopoverContent>
         </Popover>
