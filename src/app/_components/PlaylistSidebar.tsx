@@ -33,6 +33,7 @@ import {
 import { MoreVertical } from 'lucide-react';
 import { ThemeToggle } from "./ThemeToggle";
 import SongSearchBar from "./SongSearchBar";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 
 export default function PlaylistSidebar() {
@@ -100,12 +101,15 @@ export default function PlaylistSidebar() {
       <aside className="w-full flex flex-col bg-card/60 backdrop-blur-xl h-full md:border-r md:border-border">
         <div className="p-4 border-b border-border">
             <div className="flex justify-between items-center mb-4">
-                 <h1 className="text-2xl font-bold text-foreground font-headline">
-                    QuietTube
-                </h1>
-                <div className="hidden md:block">
-                  <ThemeToggle />
+                <div className="flex items-center gap-2">
+                    <div className="md:hidden">
+                        <SidebarTrigger />
+                    </div>
+                    <h1 className="text-2xl font-bold text-foreground font-headline">
+                        QuietTube
+                    </h1>
                 </div>
+                <ThemeToggle />
             </div>
 
             <div className="mb-4">
