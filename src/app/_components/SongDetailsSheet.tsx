@@ -6,7 +6,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -45,11 +44,11 @@ export default function SongDetailsSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent>
+      <SheetContent className="bg-card/60 backdrop-blur-xl">
         <SheetHeader>
           <SheetTitle>Song Details</SheetTitle>
         </SheetHeader>
-        <div className="py-4 space-y-4">
+        <div className="py-4 space-y-4 h-full flex flex-col">
           <div className="relative aspect-video rounded-md overflow-hidden bg-muted flex items-center justify-center">
             {thumbnail ? (
               <Image
@@ -70,7 +69,7 @@ export default function SongDetailsSheet({
             </p>
           </div>
 
-          <Button onClick={handleFindLyrics} className="w-full">
+          <Button onClick={handleFindLyrics} className="w-full mt-auto">
             <Search className="mr-2 h-4 w-4" />
             Find Lyrics on Genius
           </Button>
