@@ -13,7 +13,9 @@ import Image from "next/image";
 import { usePlayer } from "@/hooks/usePlayer";
 import { getYouTubeThumbnail } from "@/lib/utils";
 import type { Song } from "@/types";
-import { Music, Search, ArrowLeft } from "lucide-react";
+import { Music, Search, ArrowLeft, Loader } from "lucide-react";
+import { getLyrics } from "@/ai/flows/scrapeLyrics";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface SongDetailsSheetProps {
   isOpen: boolean;
@@ -28,7 +30,9 @@ export default function SongDetailsSheet({
 }: SongDetailsSheetProps) {
   const { currentTrack } = usePlayer();
   const [view, setView] = useState<"details" | "lyrics">("details");
-  const [lyricsUrl, setLyricsUrl] = useState<string | null>(null);
+  const [lyrics, setLyrics] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const activeSong = song || currentTrack;
   const thumbnail = activeSong ? getYouTubeThumbnail(activeSong.url, 'max') : null;
@@ -37,23 +41,39 @@ export default function SongDetailsSheet({
     // Reset to details view when the sheet is closed or the song changes
     if (!isOpen || (song && currentTrack && song.id !== currentTrack.id)) {
       setView("details");
-      setLyricsUrl(null);
+      setLyrics(null);
+      setError(null);
+      setIsLoading(false);
     }
   }, [isOpen, song, currentTrack]);
 
 
-  const handleFindLyrics = () => {
+  const handleFindLyrics = async () => {
     if (activeSong) {
-      const query = encodeURIComponent(`${activeSong.title} lyrics`);
-      const url = `https://www.lyrics.com/lyrics/${query}`;
-      setLyricsUrl(url);
       setView("lyrics");
+      setIsLoading(true);
+      setError(null);
+      setLyrics(null);
+      try {
+        const result = await getLyrics({ songTitle: activeSong.title });
+        if (result && result.lyrics) {
+          setLyrics(result.lyrics);
+        } else {
+          setError("Could not find lyrics for this song.");
+        }
+      } catch (e) {
+        console.error(e);
+        setError("An error occurred while fetching lyrics.");
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   const handleBack = () => {
     setView("details");
-    setLyricsUrl(null);
+    setLyrics(null);
+    setError(null);
   }
 
   if (!activeSong) {
@@ -97,19 +117,25 @@ export default function SongDetailsSheet({
 
                 <Button onClick={handleFindLyrics} className="w-full mt-auto">
                     <Search className="mr-2 h-4 w-4" />
-                    Find Lyrics on Lyrics.com
+                    Find Lyrics
                 </Button>
             </div>
         ) : (
-            <div className="flex-1 w-full h-full overflow-hidden rounded-md border border-border">
-                {lyricsUrl && (
-                    <iframe
-                        src={lyricsUrl}
-                        title="Lyrics search"
-                        className="w-full h-full border-0"
-                    />
+            <ScrollArea className="flex-1 w-full h-full rounded-md border border-border p-4">
+                {isLoading && (
+                    <div className="flex items-center justify-center h-full">
+                        <Loader className="h-8 w-8 animate-spin text-primary" />
+                    </div>
                 )}
-            </div>
+                {error && (
+                    <div className="flex items-center justify-center h-full text-destructive">
+                       <p>{error}</p>
+                    </div>
+                )}
+                {lyrics && (
+                   <p className="whitespace-pre-wrap text-foreground">{lyrics}</p>
+                )}
+            </ScrollArea>
         )}
       </SheetContent>
     </Sheet>
