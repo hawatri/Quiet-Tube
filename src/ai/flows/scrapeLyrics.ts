@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -42,6 +43,7 @@ export async function getLyrics(input: LyricsInput): Promise<LyricsOutput> {
     if (error.message && error.message.includes('subtitles not found')) {
         return { lyrics: "Could not find any English captions for this video." };
     }
-    throw new Error("Failed to get lyrics from video captions.");
+    // Return a generic error message for any other failure.
+    return { lyrics: "Could not retrieve lyrics for this video." };
   }
 }
