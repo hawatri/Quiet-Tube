@@ -13,6 +13,10 @@ import type { Song } from "@/types";
 import { getYouTubeThumbnail } from "@/lib/utils";
 import { Music, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { getLyrics } from "@/ai/flows/lyrics";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface SongDetailsSheetProps {
   song: Song;
@@ -22,16 +26,32 @@ interface SongDetailsSheetProps {
 
 export default function SongDetailsSheet({ song, isOpen, setIsOpen }: SongDetailsSheetProps) {
   const thumbnail = getYouTubeThumbnail(song.url, "max");
+  const [lyrics, setLyrics] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSearchLyrics = () => {
-    const query = encodeURIComponent(`${song.title} lyrics`);
-    window.open(`https://www.google.com/search?q=${query}`, "_blank");
-  };
+  useEffect(() => {
+    if (isOpen && song) {
+      setLyrics(null); // Reset on new song
+      setIsLoading(true);
+      getLyrics({ title: song.title })
+        .then(response => {
+          setLyrics(response.lyrics || "Lyrics not found.");
+        })
+        .catch(error => {
+          console.error("Failed to fetch lyrics", error);
+          setLyrics("Could not load lyrics.");
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+  }, [isOpen, song]);
+
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetContent className="w-full sm:max-w-md p-0 flex flex-col">
-        <SheetHeader className="p-6 pb-2">
+        <SheetHeader className="p-6 pb-2 border-b">
             <div className="flex gap-4">
                 <div className="relative h-24 w-24 bg-muted rounded-md flex-shrink-0 overflow-hidden">
                     {thumbnail ? (
@@ -48,12 +68,20 @@ export default function SongDetailsSheet({ song, isOpen, setIsOpen }: SongDetail
                  </div>
             </div>
         </SheetHeader>
-        <div className="flex-1 flex flex-col items-center justify-center p-6">
-            <Button onClick={handleSearchLyrics}>
-                <Search className="mr-2 h-4 w-4" />
-                Search for Lyrics on Google
-            </Button>
-        </div>
+        <ScrollArea className="flex-1">
+            <div className="p-6 whitespace-pre-wrap text-sm text-muted-foreground">
+                {isLoading && (
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-1/2" />
+                    </div>
+                )}
+                {lyrics}
+            </div>
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );
