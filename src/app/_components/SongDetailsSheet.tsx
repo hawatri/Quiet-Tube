@@ -45,7 +45,7 @@ export default function SongDetailsSheet({
   const handleFindLyrics = () => {
     if (activeSong) {
       const query = encodeURIComponent(`${activeSong.title} lyrics`);
-      const url = `https://genius.com/search?q=${query}`;
+      const url = `https://www.lyrics.com/lyrics/${query}`;
       setLyricsUrl(url);
       setView("lyrics");
     }
@@ -97,7 +97,7 @@ export default function SongDetailsSheet({
 
                 <Button onClick={handleFindLyrics} className="w-full mt-auto">
                     <Search className="mr-2 h-4 w-4" />
-                    Find Lyrics on Genius
+                    Find Lyrics on Lyrics.com
                 </Button>
             </div>
         ) : (
