@@ -42,7 +42,19 @@ export default function SongDetailsSheet({
         setError(null);
         setLyrics(null);
         try {
-          const result = await getLyrics({ songTitle: activeSong.title });
+            let videoId;
+            const url = new URL(activeSong.url);
+            if (url.hostname === 'youtu.be') {
+                videoId = url.pathname.slice(1);
+            } else {
+                videoId = url.searchParams.get('v');
+            }
+
+            if (!videoId) {
+                throw new Error("Invalid YouTube URL");
+            }
+
+          const result = await getLyrics({ videoId: videoId });
           if (result && result.lyrics) {
             setLyrics(result.lyrics);
           } else {

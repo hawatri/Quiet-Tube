@@ -1,11 +1,10 @@
 'use server';
 
 import { z } from 'zod';
-import axios from 'axios';
-import * as cheerio from 'cheerio';
+import { getSubtitles } from 'youtube-captions-scraper';
 
 const LyricsInputSchema = z.object({
-  songTitle: z.string().describe('The title of the song to find lyrics for.'),
+  videoId: z.string().describe('The YouTube video ID to find lyrics for.'),
 });
 type LyricsInput = z.infer<typeof LyricsInputSchema>;
 
@@ -16,48 +15,33 @@ type LyricsOutput = z.infer<typeof LyricsOutputSchema>;
 
 export async function getLyrics(input: LyricsInput): Promise<LyricsOutput> {
   try {
-    const searchQuery = encodeURIComponent(input.songTitle);
-    const searchUrl = `https://search.azlyrics.com/search.php?q=${searchQuery}`;
-
-    const searchResponse = await axios.get(searchUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
+    const captions = await getSubtitles({
+      videoID: input.videoId,
+      lang: 'en' // You can change this to your preferred language
     });
 
-    const $search = cheerio.load(searchResponse.data);
-    const firstResult = $search('td.text-left a').first().attr('href');
-
-    if (!firstResult) {
-      return { lyrics: "Could not find a lyrics page for this song." };
+    if (!captions || captions.length === 0) {
+      return { lyrics: "No captions found for this video." };
     }
+
+    const lyrics = captions.map(caption => caption.text).join(' ');
     
-    // Ensure the URL is valid
-    if (!firstResult.startsWith('http')) {
-       return { lyrics: "Could not find a valid lyrics page URL." };
+    // Basic clean up, you might want to do more advanced formatting
+    const cleanedLyrics = lyrics
+        .replace(/\[\w+\]/g, '') // remove things like [Music]
+        .replace(/\s+/g, ' ') // collapse whitespace
+        .trim();
+
+    if (!cleanedLyrics) {
+         return { lyrics: "Captions were found, but they appear to be empty." };
     }
 
-    const lyricsResponse = await axios.get(firstResult, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
-    });
-
-    const $lyrics = cheerio.load(lyricsResponse.data);
-    
-    // AZLyrics lyrics are in a div with no class/id, right after the <!-- Usage of azlyrics.com content by any third-party lyrics provider is prohibited by our licensing agreement. Sorry about that. --> comment
-    let lyrics = $lyrics('div.container.main-page div.row div.col-xs-12.col-lg-8.text-center div:not([class])').first().html();
-
-    if (!lyrics) {
-      return { lyrics: "Found a page, but could not extract lyrics." };
+    return { lyrics: cleanedLyrics };
+  } catch (error: any) {
+    console.error("Error scraping captions:", error);
+    if (error.message && error.message.includes('subtitles not found')) {
+        return { lyrics: "Could not find any English captions for this video." };
     }
-
-    // Replace <br> tags with newlines and remove HTML tags
-    lyrics = lyrics.replace(/<br>/g, '\n').replace(/<[^>]*>?/gm, '');
-
-    return { lyrics: lyrics.trim() };
-  } catch (error) {
-    console.error("Error scraping lyrics:", error);
-    throw new Error("Failed to scrape lyrics.");
+    throw new Error("Failed to get lyrics from video captions.");
   }
 }
