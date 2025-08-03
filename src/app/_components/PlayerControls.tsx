@@ -2,7 +2,6 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
 import { usePlayer } from "@/hooks/usePlayer";
 import { Button } from "@/components/ui/button";
 import WavySlider from "./WavySlider";
@@ -17,12 +16,10 @@ import {
   Shuffle,
   Music,
   Volume1,
-  ListMusic,
 } from "lucide-react";
 import { cn, getYouTubeThumbnail } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import SongDetailsSheet from "./SongDetailsSheet";
 
 const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return "0:00";
@@ -49,7 +46,6 @@ export default function PlayerControls() {
     toggleShuffle,
     seek,
   } = usePlayer();
-  const [isDetailsSheetOpen, setDetailsSheetOpen] = useState(false);
 
   const handleVolumeChange = (value: number[]) => {
     setVolume(value[0]);
@@ -180,20 +176,9 @@ export default function PlayerControls() {
                     </PopoverContent>
                 </Popover>
             </div>
-            
-             <Button variant="ghost" size="icon" onClick={() => setDetailsSheetOpen(true)} disabled={!currentTrack} aria-label="Song details">
-                <ListMusic className="h-5 w-5" />
-            </Button>
           </div>
         </div>
       </footer>
-       {currentTrack && (
-        <SongDetailsSheet
-            song={currentTrack}
-            isOpen={isDetailsSheetOpen}
-            setIsOpen={setDetailsSheetOpen}
-        />
-      )}
     </>
   );
 }
