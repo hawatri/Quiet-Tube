@@ -16,10 +16,13 @@ import {
   Shuffle,
   Music,
   Volume1,
+  ListMusic,
 } from "lucide-react";
 import { cn, getYouTubeThumbnail } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useState } from "react";
+import SongDetailsSheet from "./SongDetailsSheet";
 
 const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return "0:00";
@@ -46,6 +49,7 @@ export default function PlayerControls() {
     toggleShuffle,
     seek,
   } = usePlayer();
+  const [isDetailsOpen, setDetailsOpen] = useState(false);
 
   const handleVolumeChange = (value: number[]) => {
     setVolume(value[0]);
@@ -176,9 +180,25 @@ export default function PlayerControls() {
                     </PopoverContent>
                 </Popover>
             </div>
+             <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setDetailsOpen(true)}
+                disabled={!currentTrack}
+                aria-label="Song details"
+            >
+                <ListMusic className="h-5 w-5" />
+            </Button>
           </div>
         </div>
       </footer>
+      {currentTrack && (
+        <SongDetailsSheet
+            isOpen={isDetailsOpen}
+            onOpenChange={setDetailsOpen}
+            song={currentTrack}
+        />
+      )}
     </>
   );
 }
