@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Sheet,
@@ -10,12 +9,10 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
 import type { Song } from "@/types";
 import { getYouTubeThumbnail } from "@/lib/utils";
-import { getLyrics } from "@/ai/flows/lyrics-flow";
-import { Music } from "lucide-react";
+import { Music, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface SongDetailsSheetProps {
   song: Song;
@@ -24,28 +21,12 @@ interface SongDetailsSheetProps {
 }
 
 export default function SongDetailsSheet({ song, isOpen, setIsOpen }: SongDetailsSheetProps) {
-  const [lyrics, setLyrics] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const thumbnail = getYouTubeThumbnail(song.url, "max");
 
-  useEffect(() => {
-    if (isOpen && song) {
-      const fetchLyrics = async () => {
-        setIsLoading(true);
-        setLyrics(null);
-        try {
-          const result = await getLyrics({ title: song.title });
-          setLyrics(result.lyrics);
-        } catch (error) {
-          console.error("Failed to fetch lyrics:", error);
-          setLyrics("Could not load lyrics.");
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchLyrics();
-    }
-  }, [isOpen, song]);
+  const handleSearchLyrics = () => {
+    const query = encodeURIComponent(`${song.title} lyrics`);
+    window.open(`https://www.google.com/search?q=${query}`, "_blank");
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -63,25 +44,16 @@ export default function SongDetailsSheet({ song, isOpen, setIsOpen }: SongDetail
                 </div>
                  <div>
                     <SheetTitle className="text-left text-2xl font-bold leading-tight">{song.title}</SheetTitle>
-                    <SheetDescription className="text-left">Lyrics</SheetDescription>
+                    <SheetDescription className="text-left">by QuietTube</SheetDescription>
                  </div>
             </div>
         </SheetHeader>
-        <ScrollArea className="flex-1 px-6">
-          <div className="prose prose-sm dark:prose-invert whitespace-pre-wrap py-4">
-            {isLoading && (
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            )}
-            {!isLoading && lyrics && <p>{lyrics}</p>}
-            {!isLoading && !lyrics && <p>No lyrics found for this song.</p>}
-          </div>
-        </ScrollArea>
+        <div className="flex-1 flex flex-col items-center justify-center p-6">
+            <Button onClick={handleSearchLyrics}>
+                <Search className="mr-2 h-4 w-4" />
+                Search for Lyrics on Google
+            </Button>
+        </div>
       </SheetContent>
     </Sheet>
   );
