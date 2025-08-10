@@ -13,15 +13,15 @@ const WavySlider = React.forwardRef<
   <SliderPrimitive.Root
     ref={ref}
     className={cn(
-      "relative flex w-full touch-none select-none items-center group",
+      "relative flex w-full touch-none select-none items-center group cursor-pointer",
       className
     )}
     {...props}
   >
-    <SliderPrimitive.Track className="relative h-5 w-full grow overflow-hidden rounded-full bg-secondary/80 wavy-slider-track">
-      <SliderPrimitive.Range className="absolute h-full bg-primary wavy-slider-range" />
+    <SliderPrimitive.Track className="relative h-3 md:h-4 w-full grow overflow-hidden rounded-full bg-secondary/60 wavy-slider-track transition-all hover:bg-secondary/80">
+      <SliderPrimitive.Range className="absolute h-full bg-primary wavy-slider-range transition-all" />
     </SliderPrimitive.Track>
-    <SliderPrimitive.Thumb className="block h-5 w-5 rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50" />
+    <SliderPrimitive.Thumb className="block h-4 w-4 md:h-5 md:w-5 rounded-full border-2 border-primary bg-background ring-offset-background transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 shadow-lg" />
   </SliderPrimitive.Root>
 ))
 WavySlider.displayName = "WavySlider"

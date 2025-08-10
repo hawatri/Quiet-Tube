@@ -50,6 +50,7 @@ export default function PlayerControls() {
     seek,
   } = usePlayer();
   const [isDetailsOpen, setDetailsOpen] = useState(false);
+  const [isVolumeOpen, setVolumeOpen] = useState(false);
 
   const handleVolumeChange = (value: number[]) => {
     setVolume(value[0]);
@@ -67,70 +68,72 @@ export default function PlayerControls() {
 
   return (
     <>
-      <footer className="fixed bottom-0 left-0 right-0 h-24 bg-card/60 backdrop-blur-xl border-t border-border z-50">
-        <div className="h-full container mx-auto px-4 flex items-center justify-between">
+      <footer className="fixed bottom-0 left-0 right-0 h-20 md:h-24 bg-card/70 backdrop-blur-xl border-t border-border/50 z-50 transition-all duration-300">
+        <div className="h-full container mx-auto px-2 md:px-4 flex items-center justify-between gap-2 md:gap-4">
           
-          <div className="w-1/4 flex items-center gap-3">
+          {/* Track Info - Responsive */}
+          <div className="flex-1 md:w-1/4 flex items-center gap-2 md:gap-3 min-w-0">
           {currentTrack ? (
               <>
-              <div className="h-14 w-14 bg-muted/80 rounded-md flex items-center justify-center relative overflow-hidden">
+              <div className="h-10 w-10 md:h-14 md:w-14 bg-muted/80 rounded-md flex items-center justify-center relative overflow-hidden flex-shrink-0">
                   {thumbnail ? (
-                      <Image src={thumbnail} alt={currentTrack.title} layout="fill" objectFit="cover" />
+                      <Image src={thumbnail} alt={currentTrack.title} fill className="object-cover" />
                   ) : (
-                    <Music className="h-8 w-8 text-muted-foreground" />
+                    <Music className="h-4 w-4 md:h-8 md:w-8 text-muted-foreground" />
                   )}
               </div>
-              <div className="hidden sm:block">
-                  <p className="font-semibold truncate">{currentTrack.title}</p>
-                  <p className="text-sm text-muted-foreground">QuietTube</p>
+              <div className="hidden sm:block min-w-0 flex-1">
+                  <p className="font-semibold truncate text-sm md:text-base">{currentTrack.title}</p>
+                  <p className="text-xs md:text-sm text-muted-foreground">QuietTube</p>
               </div>
               </>
           ) : (
-              <div className="flex items-center gap-3">
-                  <div className="h-14 w-14 bg-muted/80 rounded-md flex items-center justify-center">
-                  <Music className="h-8 w-8 text-muted-foreground" />
+              <div className="flex items-center gap-2 md:gap-3">
+                  <div className="h-10 w-10 md:h-14 md:w-14 bg-muted/80 rounded-md flex items-center justify-center">
+                  <Music className="h-4 w-4 md:h-8 md:w-8 text-muted-foreground" />
               </div>
-              <div className="hidden sm:block">
-                  <p className="font-semibold text-muted-foreground">No song selected</p>
+              <div className="hidden md:block">
+                  <p className="font-semibold text-muted-foreground text-sm md:text-base">No song selected</p>
               </div>
               </div>
           )}
           </div>
 
-          <div className="w-full md:w-1/2 flex flex-col items-center justify-center gap-2 px-4">
-              <div className="flex items-center justify-center gap-2">
+          {/* Main Controls - Responsive */}
+          <div className="flex-1 md:flex-none md:w-1/2 flex flex-col items-center justify-center gap-1 md:gap-2 px-2 md:px-4">
+              <div className="flex items-center justify-center gap-1 md:gap-2">
                   <Button
                       variant="ghost"
-                      size="icon"
+                      size={currentTrack ? "icon" : "sm"}
                       onClick={toggleShuffle}
-                      className={cn("h-8 w-8", isShuffled && "text-primary bg-primary/10")}
+                      className={cn("h-6 w-6 md:h-8 md:w-8 hidden sm:flex", isShuffled && "text-primary bg-primary/10")}
                       disabled={!currentTrack}
                       aria-label="Toggle shuffle"
                   >
-                      <Shuffle className="h-4 w-4" />
+                      <Shuffle className="h-3 w-3 md:h-4 md:w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={playPrevious} disabled={!currentTrack} aria-label="Previous track">
-                      <SkipBack className="h-5 w-5" />
+                  <Button variant="ghost" size="icon" onClick={playPrevious} disabled={!currentTrack} aria-label="Previous track" className="h-8 w-8 md:h-10 md:w-10">
+                      <SkipBack className="h-4 w-4 md:h-5 md:w-5" />
                   </Button>
-                  <Button size="icon" onClick={togglePlay} disabled={!currentTrack} className="h-10 w-10 rounded-full" aria-label={isPlaying ? "Pause" : "Play"}>
-                      {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 fill-current" />}
+                  <Button size="icon" onClick={togglePlay} disabled={!currentTrack} className="h-10 w-10 md:h-12 md:w-12 rounded-full" aria-label={isPlaying ? "Pause" : "Play"}>
+                      {isPlaying ? <Pause className="h-5 w-5 md:h-6 md:w-6" /> : <Play className="h-5 w-5 md:h-6 md:w-6 fill-current" />}
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={playNext} disabled={!currentTrack} aria-label="Next track">
-                      <SkipForward className="h-5 w-5" />
+                  <Button variant="ghost" size="icon" onClick={playNext} disabled={!currentTrack} aria-label="Next track" className="h-8 w-8 md:h-10 md:w-10">
+                      <SkipForward className="h-4 w-4 md:h-5 md:w-5" />
                   </Button>
                   <Button
                       variant="ghost"
-                      size="icon"
+                      size={currentTrack ? "icon" : "sm"}
                       onClick={toggleLoop}
-                      className={cn("h-8 w-8", loop && "text-primary bg-primary/10")}
+                      className={cn("h-6 w-6 md:h-8 md:w-8 hidden sm:flex", loop && "text-primary bg-primary/10")}
                       disabled={!currentTrack}
                       aria-label="Toggle loop"
                   >
-                      <Repeat className="h-4 w-4" />
+                      <Repeat className="h-3 w-3 md:h-4 md:w-4" />
                   </Button>
               </div>
-              <div className="w-full flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground w-10 text-right">{formatTime(progress)}</span>
+              <div className="w-full flex items-center gap-1 md:gap-2">
+                  <span className="text-xs text-muted-foreground w-8 md:w-10 text-right">{formatTime(progress)}</span>
                   <WavySlider
                       value={[progress]}
                       onValueChange={handleSeek}
@@ -140,30 +143,31 @@ export default function PlayerControls() {
                       disabled={!currentTrack}
                       aria-label="Seek control"
                   />
-                  <span className="text-xs text-muted-foreground w-10 text-left">{formatTime(duration)}</span>
+                  <span className="text-xs text-muted-foreground w-8 md:w-10 text-left">{formatTime(duration)}</span>
               </div>
           </div>
 
-          <div className="w-1/4 flex items-center justify-end gap-2">
+          {/* Volume and Actions - Responsive */}
+          <div className="flex-1 md:w-1/4 flex items-center justify-end gap-1 md:gap-2">
             {/* Desktop Volume Slider */}
-            <div className="hidden md:flex items-center gap-2">
-                <VolumeIcon className="h-5 w-5" />
+            <div className="hidden lg:flex items-center gap-2">
+                <VolumeIcon className="h-4 w-4 md:h-5 md:w-5" />
                 <Slider
                     value={[volume]}
                     onValueChange={handleVolumeChange}
                     max={1}
                     step={0.01}
-                    className="w-[120px]"
+                    className="w-20 md:w-[120px]"
                     aria-label="Volume control"
                 />
             </div>
 
             {/* Mobile Volume Popover */}
-            <div className="md:hidden">
+            <div className="lg:hidden">
                 <Popover>
                     <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                             <VolumeIcon className="h-5 w-5" />
+                        <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10">
+                             <VolumeIcon className="h-4 w-4 md:h-5 md:w-5" />
                              <span className="sr-only">Volume control</span>
                         </Button>
                     </PopoverTrigger>
@@ -174,7 +178,7 @@ export default function PlayerControls() {
                             onValueChange={handleVolumeChange}
                             max={1}
                             step={0.01}
-                            className="h-32"
+                            className="h-24 md:h-32"
                             aria-label="Volume control"
                         />
                     </PopoverContent>
@@ -182,12 +186,13 @@ export default function PlayerControls() {
             </div>
              <Button
                 variant="ghost"
-                size="icon"
+                size="icon" 
+                className="h-8 w-8 md:h-10 md:w-10"
                 onClick={() => setDetailsOpen(true)}
                 disabled={!currentTrack}
                 aria-label="Song details"
             >
-                <ListMusic className="h-5 w-5" />
+                <ListMusic className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
           </div>
         </div>

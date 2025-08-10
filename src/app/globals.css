@@ -73,24 +73,93 @@ body {
 }
 
 @layer components {
+    .liquid-gradient {
+      background: linear-gradient(-45deg, 
+        hsl(var(--primary) / 0.8), 
+        hsl(var(--accent) / 0.6), 
+        hsl(var(--chart-1) / 0.7), 
+        hsl(var(--chart-4) / 0.5),
+        hsl(var(--chart-2) / 0.6),
+        hsl(var(--primary) / 0.4)
+      );
+      background-size: 600% 600%;
+      animation: liquid-flow 20s ease infinite;
+    }
+
+    .liquid-gradient-alt {
+      background: radial-gradient(circle at 20% 80%, 
+        hsl(var(--primary) / 0.3) 0%, 
+        transparent 50%
+      ),
+      radial-gradient(circle at 80% 20%, 
+        hsl(var(--accent) / 0.4) 0%, 
+        transparent 50%
+      ),
+      radial-gradient(circle at 40% 40%, 
+        hsl(var(--chart-1) / 0.2) 0%, 
+        transparent 50%
+      ),
+      linear-gradient(135deg, 
+        hsl(var(--background)) 0%, 
+        hsl(var(--background) / 0.8) 100%
+      );
+      animation: liquid-morph 25s ease infinite;
+    }
+
     .wavy-slider-track, .wavy-slider-range {
         clip-path: url(#wave);
     }
-    .liquid-gradient {
-      background: linear-gradient(-45deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--chart-1)), hsl(var(--chart-4)));
-      background-size: 400% 400%;
-      animation: gradient-flow 15s ease infinite;
-    }
 
-    @keyframes gradient-flow {
+    @keyframes liquid-flow {
       0% {
         background-position: 0% 50%;
       }
+      25% {
+        background-position: 100% 20%;
+      }
       50% {
-        background-position: 100% 50%;
+        background-position: 80% 100%;
+      }
+      75% {
+        background-position: 20% 80%;
       }
       100% {
         background-position: 0% 50%;
+      }
+    }
+
+    @keyframes liquid-morph {
+      0%, 100% {
+        transform: scale(1) rotate(0deg);
+        filter: blur(0px);
+      }
+      25% {
+        transform: scale(1.1) rotate(90deg);
+        filter: blur(1px);
+      }
+      50% {
+        transform: scale(0.9) rotate(180deg);
+        filter: blur(2px);
+      }
+      75% {
+        transform: scale(1.05) rotate(270deg);
+        filter: blur(1px);
+      }
+    }
+
+    /* Enhanced mobile responsiveness */
+    @media (max-width: 768px) {
+      .liquid-gradient {
+        background-size: 400% 400%;
+        animation-duration: 15s;
+      }
+    }
+
+    /* Reduced motion for accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      .liquid-gradient,
+      .liquid-gradient-alt {
+        animation: none;
       }
     }
 }

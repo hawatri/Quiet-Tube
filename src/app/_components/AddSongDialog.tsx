@@ -80,45 +80,45 @@ export default function AddSongDialog({ isOpen, setIsOpen }: AddSongDialogProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="w-[95vw] max-w-md mx-auto">
         <DialogHeader>
-          <DialogTitle>Add Song to "{activePlaylist?.name}"</DialogTitle>
+          <DialogTitle className="text-lg md:text-xl">Add Song to "{activePlaylist?.name}"</DialogTitle>
           <DialogDescription>
             Enter the YouTube URL. We'll try to fetch the title, but you can edit it.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="url" className="text-right">
+        <div className="grid gap-4 py-2 md:py-4">
+           <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-2 md:gap-4">
+            <Label htmlFor="url" className="md:text-right font-medium">
               URL
             </Label>
             <Input
               id="url"
               value={url}
               onChange={(e) => handleUrlChange(e.target.value)}
-              className="col-span-3"
+              className="md:col-span-3"
               placeholder="https://www.youtube.com/watch?v=..."
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="title" className="text-right">
+          <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-2 md:gap-4">
+            <Label htmlFor="title" className="md:text-right font-medium">
               Title
             </Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="col-span-3"
+              className="md:col-span-3"
               placeholder={isFetchingTitle ? "Fetching title..." : "Song Title"}
               disabled={isFetchingTitle}
             />
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
           <DialogClose asChild>
-            <Button type="button" variant="secondary">Cancel</Button>
+            <Button type="button" variant="secondary" className="w-full sm:w-auto">Cancel</Button>
           </DialogClose>
-          <Button onClick={handleAddSong} disabled={isFetchingTitle}>
+          <Button onClick={handleAddSong} disabled={isFetchingTitle} className="w-full sm:w-auto">
             {isFetchingTitle ? "Loading..." : "Add Song"}
           </Button>
         </DialogFooter>

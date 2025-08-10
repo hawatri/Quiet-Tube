@@ -71,35 +71,35 @@ export default function SongDetailsSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-       <SheetContent className="bg-card/80 backdrop-blur-xl flex flex-col p-4">
+       <SheetContent className="bg-card/90 backdrop-blur-xl flex flex-col p-4 w-full sm:max-w-md">
         <SheetHeader className="mb-2">
-            <SheetTitle className="truncate">{activeSong.title}</SheetTitle>
+            <SheetTitle className="truncate text-lg md:text-xl">{activeSong.title}</SheetTitle>
         </SheetHeader>
-        <div className="relative aspect-video rounded-md overflow-hidden bg-muted flex items-center justify-center mb-4">
+        <div className="relative aspect-video rounded-lg overflow-hidden bg-muted flex items-center justify-center mb-4 shadow-lg">
             {thumbnail ? (
             <Image
                 src={thumbnail}
                 alt={activeSong.title}
-                layout="fill"
-                objectFit="cover"
+                fill
+                className="object-cover"
             />
             ) : (
-            <Music className="h-16 w-16 text-muted-foreground" />
+            <Music className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground" />
             )}
         </div>
-        <ScrollArea className="flex-1 w-full h-full rounded-md border border-border/50 bg-background/30 p-4">
+        <ScrollArea className="flex-1 w-full h-full rounded-lg border border-border/50 bg-background/40 p-3 md:p-4">
             {isLoading && (
                 <div className="flex items-center justify-center h-full">
-                    <Loader className="h-8 w-8 animate-spin text-primary" />
+                    <Loader className="h-6 w-6 md:h-8 md:w-8 animate-spin text-primary" />
                 </div>
             )}
             {error && (
                 <div className="flex items-center justify-center h-full text-destructive">
-                   <p>{error}</p>
+                   <p className="text-sm md:text-base text-center">{error}</p>
                 </div>
             )}
             {lyrics && (
-               <p className="whitespace-pre-wrap text-foreground">{lyrics}</p>
+               <p className="whitespace-pre-wrap text-foreground text-sm md:text-base leading-relaxed">{lyrics}</p>
             )}
         </ScrollArea>
       </SheetContent>

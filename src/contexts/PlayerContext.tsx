@@ -242,6 +242,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   
     if (!loop && !isShuffled && currentTrackIndex === playingPlaylist.songs.length - 1) {
         setIsPlaying(false);
+        toast({ title: "Playlist ended", description: "Enable loop to continue playing." });
         return;
     }
     
@@ -250,6 +251,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       const currentShuffleIndex = shuffleOrder.current.indexOf(currentTrackIndex);
       if (!loop && currentShuffleIndex === shuffleOrder.current.length - 1) {
           setIsPlaying(false);
+          toast({ title: "Playlist ended", description: "Enable loop to continue playing." });
           return;
       }
       const nextShuffleIndex = (currentShuffleIndex + 1) % shuffleOrder.current.length;

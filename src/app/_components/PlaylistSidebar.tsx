@@ -98,14 +98,14 @@ export default function PlaylistSidebar() {
 
   return (
     <>
-      <aside className="w-full flex flex-col bg-card/60 backdrop-blur-xl h-full md:border-r md:border-border">
+      <aside className="w-full flex flex-col bg-card/70 backdrop-blur-xl h-full md:border-r md:border-border/50">
         <div className="p-4 border-b border-border">
             <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
                     <div className="md:hidden">
                         <SidebarTrigger />
                     </div>
-                    <h1 className="text-2xl font-bold text-foreground font-headline">
+                    <h1 className="text-xl md:text-2xl font-bold text-foreground font-headline">
                         QuietTube
                     </h1>
                 </div>
@@ -116,28 +116,32 @@ export default function PlaylistSidebar() {
               <SongSearchBar />
             </div>
            
-            <div className="flex flex-col space-y-2">
+            <div className="flex flex-col space-y-2 md:space-y-3">
                  <Button
                     size="sm"
                     onClick={() => setCreateDialogOpen(true)}
-                    className="w-full"
+                    className="w-full h-9 md:h-10"
                 >
                     <Plus className="mr-2 h-4 w-4" /> New Playlist
                 </Button>
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 md:space-x-3">
                      <Button
                       variant="outline"
-                      className="flex-1"
+                      size="sm"
+                      className="flex-1 h-8 md:h-9"
                       onClick={handleDownloadAll}
                     >
-                      <Download className="mr-2 h-4 w-4" /> All
+                      <Download className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" /> 
+                      <span className="hidden sm:inline">Export All</span>
+                      <span className="sm:hidden">All</span>
                     </Button>
                     <Button
                       variant="outline"
-                      className="flex-1"
+                      size="sm"
+                      className="flex-1 h-8 md:h-9"
                       onClick={handleImportClick}
                     >
-                      <FolderOpen className="mr-2 h-4 w-4" /> Import
+                      <FolderOpen className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" /> Import
                     </Button>
                 </div>
             </div>

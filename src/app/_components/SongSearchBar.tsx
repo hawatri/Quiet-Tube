@@ -122,34 +122,34 @@ export default function SongSearchBar() {
         <Popover open={isPopoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger asChild className="w-full">
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
                     <Input
                         ref={inputRef}
                         type="search"
-                        placeholder="Search songs or paste a YouTube URL..."
+                        placeholder="Search or paste YouTube URL..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onFocus={() => { if(searchQuery) setPopoverOpen(true)}}
-                        className="pl-9"
+                        className="pl-7 md:pl-9 h-8 md:h-10 text-sm"
                         disabled={isFetching}
                     />
                 </div>
             </PopoverTrigger>
             <PopoverContent 
-                className="w-[--radix-popover-trigger-width] p-0 bg-transparent backdrop-blur-sm border-none" 
+                className="w-[--radix-popover-trigger-width] p-0 bg-card/95 backdrop-blur-xl border border-border/50 shadow-lg" 
                 align="start"
                 onOpenAutoFocus={(e) => e.preventDefault()}
             >
-                <Command className="bg-card/10 backdrop-blur-xl">
+                <Command className="bg-transparent">
                     {isYouTubeUrl && !urlAlreadyInPlaylist && (
                             <CommandItem onSelect={handlePlayFromUrl} className="cursor-pointer">
-                            <Youtube className="mr-2 h-4 w-4 text-red-500" />
+                            <Youtube className="mr-2 h-3 w-3 md:h-4 md:w-4 text-red-500" />
                             <span>Play from YouTube</span>
                         </CommandItem>
                     )}
                         {isYouTubeUrl && urlAlreadyInPlaylist && (
                             <CommandItem disabled className="cursor-not-allowed text-muted-foreground">
-                            <Youtube className="mr-2 h-4 w-4" />
+                            <Youtube className="mr-2 h-3 w-3 md:h-4 md:w-4" />
                             <span>Song is already in a playlist</span>
                         </CommandItem>
                     )}
@@ -157,9 +157,9 @@ export default function SongSearchBar() {
                         <CommandGroup heading="Songs in your playlists">
                             {searchResults.map(result => (
                                 <CommandItem key={result.song.id} onSelect={() => handleSelectSong(result)} className="cursor-pointer">
-                                    <Music className="mr-2 h-4 w-4" />
+                                    <Music className="mr-2 h-3 w-3 md:h-4 md:w-4" />
                                     <div className="flex-1 truncate">
-                                        <p className="truncate">{result.song.title}</p>
+                                        <p className="truncate text-sm">{result.song.title}</p>
                                         <p className="text-xs text-muted-foreground truncate">{result.playlist.name}</p>
                                     </div>
                                 </CommandItem>
@@ -170,7 +170,7 @@ export default function SongSearchBar() {
                         {searchQuery.trim().length > 1 && !isYouTubeUrl && !isFetching && "No songs found."}
                             {isFetching && "Fetching..."}
                             {searchQuery.trim().length > 1 && !isYouTubeUrl && !searchResults.length && !isFetching && (
-                            <div className="p-4 text-sm text-center text-muted-foreground">
+                            <div className="p-3 md:p-4 text-xs md:text-sm text-center text-muted-foreground">
                                 No songs found. Try pasting a YouTube URL.
                             </div>
                         )}
